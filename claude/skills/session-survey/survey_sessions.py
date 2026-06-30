@@ -16,6 +16,7 @@ Usage:
 
 import json
 import os
+import shlex
 import subprocess
 import sys
 import time
@@ -278,9 +279,7 @@ def format_resume_commands(results):
         for s in sessions:
             synopsis_short = s["synopsis"][:60]
             lines.append(f"# {s['time']} | {synopsis_short}")
-            lines.append(
-                f"cd {s['real_path']} && claude --resume {s['session_id']}\n"
-            )
+            lines.append(_build_resume_command(s['real_path'], s['session_id'], "") + "\n")
 
     return "\n".join(lines)
 
@@ -304,6 +303,18 @@ def _parse_pick_selectors(pick):
             else:
                 pick_map[selector.lower()] = None
     return pick_map
+
+
+def _build_resume_command(real_path, session_id, flags):
+    """Build a shell command line to cd + resume a session, with every
+    interpolated value shell-quoted so a path or session id containing
+    spaces/quotes/$/backticks can't break out of the command."""
+    return f"cd {shlex.quote(str(real_path))} && claude --resume {shlex.quote(str(session_id))}{flags}"
+
+
+def _applescript_escape(s):
+    """Escape a string for safe embedding inside an AppleScript "..." literal."""
+    return s.replace("\\", "\\\\").replace('"', '\\"')
 
 
 def _collect_restore_sessions(results, pick=None):
@@ -347,10 +358,10 @@ def write_restore_script(results, safe_mode=False, pick=None, output_path="/tmp/
 
     lines = ['tell application "iTerm2"', '    tell current window']
     for proj, i, s, real_path in selected:
-        cmd = f"cd {real_path} && claude --resume {s['session_id']}{flags}"
+        cmd = _build_resume_command(real_path, s['session_id'], flags)
         lines.append('        create tab with default profile')
         lines.append('        tell current session of current tab')
-        lines.append(f'            write text "{cmd}"')
+        lines.append(f'            write text "{_applescript_escape(cmd)}"')
         lines.append('        end tell')
     lines.append('    end tell')
     lines.append('end tell')
@@ -380,7 +391,7 @@ def restore_iterm_tabs(results, safe_mode=False, dry_run=False, pick=None):
     opened = []
 
     for proj, i, s, real_path in selected:
-        cmd = f"cd {real_path} && claude --resume {s['session_id']}{flags}"
+        cmd = _build_resume_command(real_path, s['session_id'], flags)
 
         if dry_run:
             synopsis_short = s["synopsis"][:50]
@@ -389,21 +400,20 @@ def restore_iterm_tabs(results, safe_mode=False, dry_run=False, pick=None):
             opened.append((proj, i, s))
             continue
 
-        # Build osascript — shell variable ensures cd + resume in one string
-        osa_result = subprocess.run(
-            ["bash", "-c", f'''
-FULL="cd {real_path} && claude --resume {s['session_id']}{flags}"
-osascript <<APPLESCRIPT
-tell application "iTerm2"
+        # Call osascript directly (no intermediate shell) so the only
+        # escaping that matters is the AppleScript string literal below —
+        # there is no shell here for a malicious path/session id to break
+        # out of.
+        applescript = f'''tell application "iTerm2"
     tell current window
         create tab with default profile
         tell current session of current tab
-            write text "$FULL"
+            write text "{_applescript_escape(cmd)}"
         end tell
     end tell
-end tell
-APPLESCRIPT
-'''],
+end tell'''
+        osa_result = subprocess.run(
+            ["osascript", "-e", applescript],
             capture_output=True,
             text=True,
             timeout=10,

@@ -12,6 +12,13 @@
 # ============================================================================
 set -euo pipefail
 
+# This can restore live credentials (api-keys.env, settings.local.json) if
+# the backup was made with --include-secrets. Default every file/dir this
+# script creates to owner-only; cp -p/rsync -a below preserve the archive's
+# own (already-600) permissions for those specific files, but umask covers
+# everything else this script writes (dirs, non-secret files).
+umask 077
+
 DRY_RUN=false
 FORCE=false
 for arg in "$@"; do
@@ -119,6 +126,14 @@ for f in config.json settings.json settings.local.json CLAUDE.md api-keys.env \
 done
 
 $DRY_RUN || chmod +x "$HOME_DIR/.claude/statusline.sh" 2>/dev/null || true
+
+# Force owner-only on anything credential-shaped, regardless of what
+# permissions it carried inside the archive — don't trust the source.
+if ! $DRY_RUN; then
+    for f in settings.local.json api-keys.env; do
+        [[ -f "$HOME_DIR/.claude/$f" ]] && chmod 600 "$HOME_DIR/.claude/$f"
+    done
+fi
 
 # --- 2. Skills + config dirs ---
 info "=== Restoring Skills ==="

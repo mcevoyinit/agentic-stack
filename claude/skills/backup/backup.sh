@@ -66,6 +66,14 @@
 # ============================================================================
 set -euo pipefail
 
+# This backup can include MCP SQLite data and, with --include-secrets, live
+# API keys/credentials. Default every file/dir this script CREATES to
+# owner-only (umask 077) so nothing is briefly group/world-readable between
+# creation and the explicit chmod calls below. `cp -p`/rsync can still carry
+# looser permissions over from the source files, which is why the staging
+# dir gets an explicit recursive lockdown right before it's archived too.
+umask 077
+
 # ============================================================================
 # CONFIG
 # ============================================================================
@@ -191,10 +199,13 @@ export BACKUP_REMOTE=myremote:claude-code-backups — or pass --local-only."
         info "Secret files excluded by default: ${SECRET_FILES[*]} (use --include-secrets to bundle)"
     fi
 
-    # 6. Create backup dir
+    # 6. Create backup dir (owner-only — this stages config, MCP data, and
+    # possibly live secrets before it's archived)
     mkdir -p "$BACKUP_DIR"
+    chmod 700 "$DEST_BASE" "$BACKUP_DIR"
     touch "$LOG"
-    ok "Backup directory created"
+    chmod 600 "$LOG"
+    ok "Backup directory created (mode 700)"
 
     print ""
 }
@@ -581,11 +592,18 @@ create_and_verify_archive() {
     info "=== Compressing archive ==="
     print "  This may take a minute for large datasets..."
 
+    # Recursive lockdown: umask only governs newly-created files, but several
+    # steps above used `cp -p`/rsync which can carry over looser permissions
+    # from the source. Force owner-only on the whole staging tree before it
+    # goes into the archive.
+    chmod -R go-rwx "$BACKUP_DIR"
+
     (cd "$DEST_BASE" && tar czf "$ARCHIVE" "claude-backup-$TIMESTAMP")
+    chmod 600 "$ARCHIVE"
 
     local archive_size
     archive_size=$(du -h "$ARCHIVE" | cut -f1)
-    ok "Archive created: $archive_size"
+    ok "Archive created: $archive_size (mode 600)"
 
     info "=== Verifying archive integrity ==="
 
