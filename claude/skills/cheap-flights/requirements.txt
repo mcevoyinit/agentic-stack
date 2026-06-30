@@ -1,0 +1,10 @@
+# fast-flights 2.2 + local patches in scripts/search.py (2026-06-10):
+#   * fetch: primp impersonate renamed to 'chrome'; EU consent wall
+#     bypassed with the yt-dlp SOCS cookie (library's Cookies.new()
+#     protobuf is rejected by Google — "Before you continue" page).
+#   * parse: robust parser with aria-label fallbacks; Google A/B-serves
+#     layouts where the library's class selectors return blank fields.
+# If you bump fast-flights, re-run a known-good route (e.g. JFK LAX) and
+# confirm airline/time/duration columns are populated, not just price.
+fast-flights==2.2
+requests>=2.31

@@ -1,0 +1,96 @@
+{
+  "_comment": "Reference list of MCP servers this stack was built around. NAMES and WHAT EACH NEEDS only — every credential below is a placeholder. Copy the entries you actually use into your settings.json mcpServers block (or claude mcp add) and fill in real values in your own untracked env/credentials store, never in a committed file.",
+  "mcpServers": {
+    "x": {
+      "_what": "X/Twitter read/write bridge. Local HTTP MCP server you run yourself (e.g. a Playwright/cookie-session bridge) or a hosted X MCP server.",
+      "url": "http://127.0.0.1:8976/mcp",
+      "_needs": ["a running local bridge process bound to this port, or swap in a hosted server URL"]
+    },
+    "codex": {
+      "_what": "OpenAI Codex CLI as an MCP server, for second-opinion code review / cross-model checks.",
+      "command": "codex-mcp-server",
+      "_needs": ["npm i -g @openai/codex (or your distro's package) so codex-mcp-server resolves via PATH"],
+      "env": {
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+      }
+    },
+    "whatsapp": {
+      "_what": "WhatsApp Web bridge (e.g. a Baileys-based Node server) exposing send/list/search tools over MCP.",
+      "command": "node",
+      "args": ["/path/to/your/whatsapp-mcp/server.js"],
+      "_needs": [
+        "your own WhatsApp Web MCP server implementation (not included — Baileys auth sessions are credentials, never ship them)",
+        "a one-time QR-code login that persists an auth/ session dir locally; gitignore it"
+      ]
+    },
+    "hermes": {
+      "_what": "Multi-platform messaging bridge (Telegram, Discord, Slack, WhatsApp, Signal, Matrix) under one MCP surface.",
+      "command": "hermes-mcp-server",
+      "_needs": ["per-platform bot tokens / session credentials, set as env vars, never committed"],
+      "env": {
+        "HERMES_CONFIG": "${HERMES_CONFIG_PATH}"
+      }
+    },
+    "nimble": {
+      "_what": "Nimble web-scraping/proxy API for fetching pages that block plain requests.",
+      "command": "nimble-mcp-server",
+      "_needs": ["NIMBLE_API_KEY from your Nimble account"],
+      "env": {
+        "NIMBLE_API_KEY": "${NIMBLE_API_KEY}"
+      }
+    },
+    "gws": {
+      "_what": "Google Workspace bridge — Gmail, Calendar, Drive — over MCP.",
+      "command": "gws-mcp-server",
+      "_needs": [
+        "a Google Cloud OAuth client (Desktop app type)",
+        "one-time browser OAuth consent flow, token cached locally under your own $GOOGLE_TOKEN_DIR"
+      ],
+      "env": {
+        "GOOGLE_CLIENT_ID": "${GOOGLE_CLIENT_ID}",
+        "GOOGLE_CLIENT_SECRET": "${GOOGLE_CLIENT_SECRET}"
+      }
+    },
+    "slack": {
+      "_what": "Slack workspace bridge — read channels/threads, post messages, manage reactions.",
+      "command": "slack-mcp-server",
+      "_needs": ["a Slack app + bot token (xoxb-...) with the scopes your use case needs"],
+      "env": {
+        "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}"
+      }
+    },
+    "github": {
+      "_what": "GitHub bridge — issues, PRs, repos, releases, code search.",
+      "command": "github-mcp-server",
+      "_needs": ["a GitHub personal access token (fine-grained, scoped to the repos you need)"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    },
+    "conversation-search": {
+      "_what": "Query layer over the recall-db schema (see infra-templates/recall-db) — search past Claude Code conversations.",
+      "command": "python3",
+      "args": ["/path/to/your/conversation-search-server.py"],
+      "_needs": [
+        "run infra-templates/recall-db/setup.py first to create the empty db",
+        "an indexer (not included) to populate it from your transcripts",
+        "your own thin MCP server exposing search/list over the schema"
+      ],
+      "env": {
+        "RECALL_DB": "${HOME}/.claude-recall/conversations.db"
+      }
+    },
+    "knowledge-base": {
+      "_what": "Query layer over the knowledge-base schema (see infra-templates/knowledge-base) — get_topic / add_insight / list_topics / search_knowledge.",
+      "command": "python3",
+      "args": ["/path/to/your/knowledge-base-server.py"],
+      "_needs": [
+        "run infra-templates/knowledge-base/setup.py first to create the empty db",
+        "your own thin MCP server exposing the four operations over the schema"
+      ],
+      "env": {
+        "KNOWLEDGE_DB": "${HOME}/.claude-knowledge/knowledge.db"
+      }
+    }
+  }
+}

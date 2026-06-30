@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "_comment_env": "Secrets (API keys) do NOT belong in this file, even templated. Export them in your shell profile or a separate untracked api-keys.env that you `source` before launching, then reference as ${VAR_NAME} wherever an MCP server needs one. See mcp/mcp-servers.example.json.",
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "64000",
+    "BASH_DEFAULT_TIMEOUT_MS": "120000",
+    "BASH_MAX_TIMEOUT_MS": "600000",
+    "MCP_TOOL_TIMEOUT": "120000",
+    "MCP_TIMEOUT": "60000",
+    "CLAUDE_CODE_ENABLE_TASKS": "true",
+    "CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION": "true"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git branch *)",
+      "Bash(git stash *)",
+      "Bash(git show *)",
+      "Bash(git rev-parse *)",
+      "Bash(git remote *)",
+      "Bash(python3 *)",
+      "Bash(npm run *)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(bun *)",
+      "Bash(brew *)",
+      "Bash(pip install *)",
+      "Bash(pip3 install *)",
+      "Bash(ls *)",
+      "Bash(which *)",
+      "Bash(wc *)",
+      "Bash(pwd)",
+      "Bash(date *)",
+      "Bash(gh *)",
+      "Bash(docker ps *)",
+      "Bash(docker logs *)",
+      "Bash(docker inspect *)",
+      "Bash(docker compose ps *)",
+      "Bash(docker compose logs *)",
+      "Bash(kubectl get *)",
+      "Bash(kubectl describe *)",
+      "Bash(kubectl logs *)",
+      "Bash(pdflatex *)",
+      "Bash(latexmk *)",
+      "Bash(xelatex *)",
+      "Bash(lualatex *)",
+      "Bash(forge build *)",
+      "Bash(forge test *)",
+      "Bash(anvil *)",
+      "Bash(curl -s *)",
+      "Bash(jq *)",
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch",
+      "Task"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(git push --force *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean -f *)",
+      "Bash(docker rm -f *)",
+      "Bash(docker system prune *)",
+      "Bash(kubectl delete *)"
+    ]
+  },
+  "_comment_hooks": "Every hook below ships in claude/hooks/ and works standalone. Hooks marked OPTIONAL reference infra-templates/ components that need a one-time setup script run first (recall-db, knowledge-base, canonical) — delete the hook entry if you don't want that component.",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/check-links.py",
+            "timeout": 60,
+            "statusMessage": "Verifying links resolve..."
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/session-end-autocapture.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/infra/canonical.py inject",
+            "timeout": 5,
+            "_comment": "OPTIONAL — requires infra-templates/canonical setup.py to have been run once. Delete this hook if you don't use the canonical registry."
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"Current local time: %s\"}}' \"$(LC_ALL=C date '+%A %Y-%m-%d %H:%M:%S %Z (UTC%z)')\" 2>/dev/null || true",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"Current local time: %s\"}}' \"$(LC_ALL=C date '+%A %Y-%m-%d %H:%M:%S %Z (UTC%z)')\" 2>/dev/null || true",
+            "timeout": 3
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline.sh"
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-code-plugins": true,
+    "code-simplifier@claude-plugins-official": true,
+    "code-review@claude-code-plugins": true,
+    "security-guidance@claude-code-plugins": true
+  },
+  "alwaysThinkingEnabled": true,
+  "effortLevel": "high",
+  "fastMode": true,
+  "autoUpdatesChannel": "latest",
+  "tui": "default",
+  "showTurnDuration": true,
+  "agentPushNotifEnabled": true,
+  "mcpServers": {
+    "_comment": "See mcp/mcp-servers.example.json for the full server list (x, codex, whatsapp, hermes, nimble, gws, slack, github, conversation-search, knowledge-base) with what each needs. Only two are wired here as a minimal working example — copy the others in from that file as you set up each server.",
+    "x": {
+      "url": "http://127.0.0.1:8976/mcp",
+      "_comment": "local bridge process — bring your own X/Twitter MCP server bound to this port, or change the url"
+    },
+    "codex": {
+      "command": "codex-mcp-server",
+      "_comment": "resolve via PATH (e.g. npm i -g or your own build) rather than hardcoding a user-specific node path",
+      "env": {
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}"
+      }
+    }
+  },
+  "thinkingEffort": "high",
+  "contextCompaction": true,
+  "maxContextTokens": 1000000,
+  "companionEnabled": false,
+  "model": "sonnet"
+}

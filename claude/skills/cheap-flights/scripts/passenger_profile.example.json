@@ -1,0 +1,31 @@
+{
+  "_comment_": "Copy to ~/.config/cheap-flights/passenger_profile.json and chmod 600. Names MUST match passport exactly (some carriers charge for name corrections).",
+  "primary": {
+    "title": "mr",
+    "given_name": "Jane",
+    "family_name": "Doe",
+    "born_on": "1990-01-01",
+    "gender": "f",
+    "email": "you@example.com",
+    "phone_number": "+15555550100",
+    "identity_documents": [
+      {
+        "type": "passport",
+        "unique_identifier": "REPLACE_WITH_PASSPORT_NUMBER",
+        "issuing_country_code": "US",
+        "expires_on": "2030-01-01"
+      }
+    ],
+    "loyalty_programmes": [
+      {"carrier_iata": "UA", "account_number": ""},
+      {"carrier_iata": "AA", "account_number": ""},
+      {"carrier_iata": "BA", "account_number": ""}
+    ]
+  },
+  "billing_address": {
+    "line_1": "",
+    "city": "New York",
+    "postal_code": "",
+    "country_code": "US"
+  }
+}

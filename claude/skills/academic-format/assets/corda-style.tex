@@ -1,0 +1,34 @@
+% =====================================================================
+% Corda whitepaper finish — the house style for /academic-format.
+%
+% Classic R3 / Corda look: article class, a4paper, ~26mm margins,
+% Latin Modern (Computer Modern) serif — the pandoc/xelatex default, so
+% no mainfont is set; that already matches the Corda body font. Section
+% headings stay black; the table of contents, cross-references, citations
+% and URLs render in Corda navy. Title and abstract sit alone on page 1,
+% the Contents gets its own page, then the body begins on a fresh page.
+%
+% Pass to pandoc via --include-in-header. Self-contained: it loads every
+% package it depends on, and each load is idempotent against the packages
+% pandoc's default LaTeX template already pulls in.
+% =====================================================================
+
+\usepackage{etoolbox}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{microtype}
+
+% Corda navy. The export utility points pandoc's colorlinks variables at this
+% colour (linkcolor/citecolor/urlcolor/toccolor=cordablue), so the TOC,
+% cross-references, citations and URLs render navy while body text and section
+% headings stay black — as in the Corda paper. Defining it here (the header is
+% emitted before pandoc's own \hypersetup) is what lets those variables resolve.
+\definecolor{cordablue}{HTML}{1A2A6C}
+
+% Isolate the title-and-abstract page, then give the Contents its own page.
+\preto\tableofcontents{\clearpage}
+\appto\tableofcontents{\clearpage}
+
+% Corda tables breathe: a touch more row height, no vertical rules
+% (booktabs convention, reinforced here for any hand-written tabulars).
+\renewcommand{\arraystretch}{1.15}

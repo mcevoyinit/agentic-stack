@@ -1,0 +1,28 @@
+# General Instructions
+
+<!-- CUSTOMISE: this is your global, all-projects instruction file.
+     Claude Code loads it into every session. Keep it short — a
+     handful of durable preferences, not a wiki. The lines below are
+     a worked example; replace them with your own. -->
+
+- Always run, test and validate correctness in programs you develop.
+  It is vital not to return false positives. Take extra time on
+  finishing/verification steps.
+- When writing a new LaTeX file, always append a timestamp to the
+  end to manage versioning.
+- I have /gemini, /openai, /grok slash commands for second opinions
+  on architecture decisions (see claude/skills/gemini,
+  claude/skills/openai, claude/skills/grok in this bundle). For
+  major decisions, get perspectives from multiple models before
+  recommending.
+- When I say "ultrathink" — take extra time to verify correctness,
+  check edge cases, validate outputs.
+- Pin model versions you rely on explicitly here (e.g. "use Gemini
+  X.Y Flash by default, upgrade to Pro when it ships") so the agent
+  doesn't drift to a stale or wrong default.
+
+<!-- CUSTOMISE: add your own sections below as you discover repeated
+     preferences — output formatting, file-writing conventions,
+     reminder protocols, etc. See claude/rules/ for examples of
+     pulling those into separate, composable rule files instead of
+     growing this one file unboundedly. -->
