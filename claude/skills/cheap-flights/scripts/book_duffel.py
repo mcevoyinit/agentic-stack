@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -91,7 +92,8 @@ def search_offers(slices: list[Slice], adults: int = 1, cabin: str = "economy") 
 
 def quote(offer_id: str) -> dict:
     """Re-fetch the offer to check for price movement before booking."""
-    return _get(f"/air/offers/{offer_id}?return_available_services=true")
+    from urllib.parse import quote as _urlquote
+    return _get(f"/air/offers/{_urlquote(offer_id, safe='')}?return_available_services=true")
 
 
 # ---- hold order -----------------------------------------------------------
@@ -117,13 +119,26 @@ def create_hold(offer: dict, profile: Profile) -> dict:
     return order
 
 
+def _sanitize_component(value: str) -> str:
+    """API-sourced strings become filename components — strip anything that
+    could traverse out of CONFIRM_DIR (.. / path separators) or surprise
+    the filesystem."""
+    return re.sub(r"[^A-Za-z0-9_.-]", "_", str(value)).lstrip(".") or "unknown"
+
+
 def _save_confirmation(order: dict) -> Path:
     CONFIRM_DIR.mkdir(parents=True, exist_ok=True)
-    pnr = order.get("booking_reference", order["id"])
-    when = order.get("created_at", "").split("T")[0] or "unknown"
+    os.chmod(CONFIRM_DIR, 0o700)
+    pnr = _sanitize_component(order.get("booking_reference", order["id"]))
+    when = _sanitize_component(order.get("created_at", "").split("T")[0] or "unknown")
     path = CONFIRM_DIR / f"{when}_{pnr}.json"
-    path.write_text(json.dumps(order, indent=2))
-    os.chmod(path, 0o600)
+    resolved = path.resolve()
+    if resolved.parent != CONFIRM_DIR.resolve():
+        raise DuffelError(f"refusing confirmation path outside {CONFIRM_DIR}: {resolved}")
+    # 0600 from creation (no create-then-chmod window): PNR + passenger PII
+    fd = os.open(resolved, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w") as f:
+        f.write(json.dumps(order, indent=2))
     return path
 
 

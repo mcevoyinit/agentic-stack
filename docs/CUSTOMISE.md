@@ -47,10 +47,12 @@ tour through the same markers, grouped by what you're trying to do.
 
 ## 3. Stand up the infra templates (all optional)
 
-- [ ] `infra-templates/canonical/` → run `setup.py`, then start
-      recording concepts with `canonical set`. Wire the optional
-      SessionStart hook in `settings.json` once you have at least one
-      concept recorded.
+- [ ] `infra-templates/canonical/` → run `setup.py` (creates the empty
+      db AND installs the CLI to `~/.claude/infra/canonical.py`, which
+      is where the optional SessionStart hook in `settings.json`
+      points), then start recording concepts with `canonical set`.
+      Until you run `setup.py`, delete that hook entry — its path
+      doesn't exist yet.
 - [ ] `infra-templates/recall-db/` → run `setup.py` to create the
       empty schema, then write your own indexer (walks your
       `~/.claude/projects/*/*.jsonl` transcripts) and your own query

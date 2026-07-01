@@ -25,6 +25,18 @@ backup_if_exists() {
   fi
 }
 
+# true if src and dst have identical content (file or dir) — re-running
+# the installer over an unchanged install must not spray .bak copies
+same_content() {
+  if [ -f "$1" ] && [ -f "$2" ]; then
+    cmp -s "$1" "$2"
+  elif [ -d "$1" ] && [ -d "$2" ]; then
+    diff -rq "$1" "$2" >/dev/null 2>&1
+  else
+    return 1
+  fi
+}
+
 copy_dir() {
   local name="$1"
   local src="$BUNDLE_DIR/claude/$name"
@@ -40,6 +52,9 @@ copy_dir() {
       local base
       base="$(basename "$item")"
       if [ -e "$dst/$base" ]; then
+        if same_content "$item" "$dst/$base"; then
+          continue
+        fi
         backup_if_exists "$dst/$base"
       fi
       cp -R "$item" "$dst/$base"
@@ -62,19 +77,27 @@ for tmpl in "$BUNDLE_DIR"/claude/*.template; do
   [ -e "$tmpl" ] || continue
   base="$(basename "$tmpl" .template)"
   dst="$TARGET/$base"
+  if same_content "$tmpl" "$dst"; then
+    echo "  = $base unchanged (skipped)"
+    continue
+  fi
   backup_if_exists "$dst"
   cp "$tmpl" "$dst"
   echo "  → $base (edit this — see docs/CUSTOMISE.md)"
 done
 
 if [ -f "$BUNDLE_DIR/claude/statusline.sh" ]; then
-  backup_if_exists "$TARGET/statusline.sh"
-  cp "$BUNDLE_DIR/claude/statusline.sh" "$TARGET/statusline.sh"
+  if ! same_content "$BUNDLE_DIR/claude/statusline.sh" "$TARGET/statusline.sh"; then
+    backup_if_exists "$TARGET/statusline.sh"
+    cp "$BUNDLE_DIR/claude/statusline.sh" "$TARGET/statusline.sh"
+  fi
   chmod +x "$TARGET/statusline.sh"
 fi
 
 echo
 echo "Done. Next steps:"
+echo "  0. Run ./verify-install.sh — a read-only doctor that checks this"
+echo "     install and reports anything missing or misconfigured."
 echo "  1. Read docs/CUSTOMISE.md in the bundle — every <CUSTOMISE> marker"
 echo "     across the installed files, grouped by what you're setting up."
 echo "  2. Edit ~/.claude/CLAUDE.md and ~/.claude/settings.json — they are"

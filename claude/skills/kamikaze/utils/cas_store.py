@@ -19,6 +19,7 @@ Design Principles (from V4 deliberation):
 import hashlib
 import json
 import os
+import re
 import time
 from dataclasses import dataclass, asdict, field
 from datetime import datetime
@@ -106,6 +107,10 @@ class CASStore:
 
     def _artifact_path(self, content_hash: str) -> Path:
         """Get file path for artifact by hash (sharded by first 2 chars)."""
+        # today every caller passes a sha256 hexdigest; assert that stays
+        # true so a non-hash string can never become a path component
+        if not re.fullmatch(r"[0-9a-f]{64}", content_hash):
+            raise ValueError(f"not a sha256 hexdigest: {content_hash[:40]!r}")
         shard = content_hash[:2]
         return self.base_dir / "artifacts" / shard / f"{content_hash}.json"
 

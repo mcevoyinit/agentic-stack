@@ -42,6 +42,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 SKILL_DIR = Path(__file__).resolve().parent
@@ -49,7 +50,8 @@ BOOKMARK_DIR = Path(os.environ.get("X_BOOKMARK_DIR", str(Path.home() / "x-bookma
 _fetcher = os.environ.get("X_BOOKMARK_FETCHER")
 FETCH_BOOKMARKS_SCRIPT = Path(_fetcher).expanduser() if _fetcher else None
 FETCH_THREADS_SCRIPT = SKILL_DIR / "fetch_threads.mjs"
-THREAD_CACHE_DIR = Path("/tmp/bookmark-threads")
+# per-user temp dir (private on macOS), not world-writable /tmp
+THREAD_CACHE_DIR = Path(tempfile.gettempdir()) / "bookmark-threads"
 
 
 # ---------- bookmark JSON sourcing ----------
@@ -262,8 +264,9 @@ def main():
                    help="Reuse most recent bookmarks-*.json instead of fetching fresh")
     p.add_argument("--cwd", default=str(Path.home()),
                    help="Working directory for each spawned claude session")
-    p.add_argument("--write-script", default="/tmp/open_bookmarks.scpt",
-                   help="Where to write the AppleScript (default: /tmp/open_bookmarks.scpt)")
+    p.add_argument("--write-script",
+                   default=str(Path(tempfile.gettempdir()) / "open_bookmarks.scpt"),
+                   help="Where to write the AppleScript (default: open_bookmarks.scpt in your private temp dir)")
     p.add_argument("--safe", action="store_true",
                    help="Omit --dangerously-skip-permissions on the spawned claude")
     p.add_argument("--dry-run", action="store_true",
@@ -272,7 +275,7 @@ def main():
     p.add_argument("--no-threads", action="store_true",
                    help="Skip fetching full conversation threads (faster, less context)")
     p.add_argument("--refresh-threads", action="store_true",
-                   help="Re-fetch threads even if already cached in /tmp/bookmark-threads")
+                   help="Re-fetch threads even if already cached in the thread cache dir")
     p.add_argument("--max-thread-chars", type=int, default=4000,
                    help="Truncate flattened thread text at N chars (default: 4000)")
     args = p.parse_args()

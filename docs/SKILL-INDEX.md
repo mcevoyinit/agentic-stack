@@ -1,6 +1,6 @@
 # Skill index
 
-64 skills ship in `claude/skills/`. One line each — read the skill's own
+66 skills ship in `claude/skills/`. One line each — read the skill's own
 `SKILL.md` for full detail. Grouped by what they're for, not
 alphabetically.
 
@@ -21,6 +21,7 @@ alphabetically.
 | `oracle` | Routes your problem to the best-fit skill automatically |
 | `deeper` | Push one level past the first-order answer |
 | `push` | Push past premature completion — finish the untested path |
+| `red-team` | CIA Tradecraft 4-pass decision stress-test, GO/KILL verdict |
 
 ## Research & analysis
 
@@ -81,6 +82,7 @@ alphabetically.
 | `codex-review` | Cross-provider review via OpenAI Codex CLI |
 | `mac-health` | macOS memory-pressure / zombie-process triage |
 | `autoresearch-loop` | Autonomous investigate-and-fix loop over a task list |
+| `archon` | Run/author Archon CLI workflows in isolated git worktrees |
 
 ## Travel / personal-productivity utilities (generic)
 
@@ -95,4 +97,5 @@ alphabetically.
 
 Skills intentionally NOT shipped (personal-data skills, or skills tied
 to one person's specific life/business/relationships) are listed in
-`SANITISATION-REPORT.md` one directory above this bundle.
+`SANITISATION-REPORT.md`, kept with the bundle's source — ask whoever
+gave you this bundle if you want it.

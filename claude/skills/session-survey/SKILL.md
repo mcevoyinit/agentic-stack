@@ -210,7 +210,6 @@ tmuxkk() { tmux kill-window -t "${DEFAULT_TMUX_SESSION:-main}:$1"; }
 | History index | `~/.claude/history.jsonl` |
 | Session files | `~/.claude/projects/<encoded-dir>/<session-id>.jsonl` |
 | Subagent data | `~/.claude/projects/<encoded-dir>/<session-id>/subagents/` |
-| Tmux recovery script | `~/.claude/scripts/tmux-resume-all.sh` |
 
 ## Important Notes
 

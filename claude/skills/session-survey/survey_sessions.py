@@ -19,6 +19,7 @@ import os
 import shlex
 import subprocess
 import sys
+import tempfile
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -343,12 +344,15 @@ def _collect_restore_sessions(results, pick=None):
     return selected, skipped
 
 
-def write_restore_script(results, safe_mode=False, pick=None, output_path="/tmp/open_sessions.scpt"):
+def write_restore_script(results, safe_mode=False, pick=None, output_path=None):
     """Write an AppleScript file that opens sessions in iTerm2 tabs.
 
     This avoids the sandbox timeout issue when Claude Code tries to run
     osascript inline — the user runs the .scpt file from their own terminal.
     """
+    if output_path is None:
+        # per-user temp dir (private on macOS), not world-writable /tmp
+        output_path = os.path.join(tempfile.gettempdir(), "open_sessions.scpt")
     flags = "" if safe_mode else " --dangerously-skip-permissions"
     selected, skipped = _collect_restore_sessions(results, pick)
 
@@ -468,16 +472,23 @@ def format_tmux_launcher(results, session_name="recovery"):
             if not window_name:
                 window_name = f"session-{i}"
 
+            # shlex.quote everything interpolated into the generated shell
+            # script — same hardening as _build_resume_command
+            q_session = shlex.quote(tmux_session)
+            q_window = shlex.quote(window_name)
+            q_path = shlex.quote(str(s["real_path"]))
+            q_target = shlex.quote(f"{tmux_session}:{window_name}")
+            q_keys = shlex.quote(f"claude --resume {s['session_id']}")
             if i == 0:
                 lines.append(
-                    f'tmux new-session -d -s "{tmux_session}" -n "{window_name}" -c "{s["real_path"]}"'
+                    f'tmux new-session -d -s {q_session} -n {q_window} -c {q_path}'
                 )
             else:
                 lines.append(
-                    f'tmux new-window -t "{tmux_session}" -n "{window_name}" -c "{s["real_path"]}"'
+                    f'tmux new-window -t {q_session} -n {q_window} -c {q_path}'
                 )
             lines.append(
-                f'tmux send-keys -t "{tmux_session}:{window_name}" "claude --resume {s["session_id"]}" Enter'
+                f'tmux send-keys -t {q_target} {q_keys} Enter'
             )
             lines.append("")
 
@@ -527,9 +538,9 @@ if __name__ == "__main__":
         "--write-script",
         type=str,
         nargs="?",
-        const="/tmp/open_sessions.scpt",
+        const="",
         metavar="PATH",
-        help="Write AppleScript to file instead of executing (default: /tmp/open_sessions.scpt). Use when osascript is blocked by sandbox.",
+        help="Write AppleScript to file instead of executing (default: open_sessions.scpt in your private temp dir). Use when osascript is blocked by sandbox.",
     )
 
     args = parser.parse_args()
@@ -551,7 +562,7 @@ if __name__ == "__main__":
             results,
             safe_mode=args.safe,
             pick=pick,
-            output_path=args.write_script,
+            output_path=args.write_script or None,
         )
     elif args.restore is not None:
         pick = args.restore if args.restore else None

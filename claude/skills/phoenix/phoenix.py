@@ -27,6 +27,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -51,28 +52,44 @@ def _key(name):
     return os.environ.get(name)
 
 
+def _hdr_file(headers):
+    """Headers (incl. the API key) go to curl via a private 0600 temp file
+    (-H @file), never on argv — argv is readable by any same-UID process
+    via ps for the life of the call. Caller must unlink the returned path."""
+    fd, path = tempfile.mkstemp(prefix="phoenix-hdr-")
+    with os.fdopen(fd, "w") as f:
+        f.write("\n".join(headers) + "\n")
+    return path
+
+
 def _curl(url, headers, payload, timeout=180):
     # --http1.1: long/large responses can trip HTTP/2 framing errors (rc=16)
-    cmd = ["curl", "-s", "-S", "--http1.1", "-X", "POST"]
-    for h in headers:
-        cmd += ["-H", h]
-    cmd += ["-d", json.dumps(payload), "--max-time", str(timeout), url]
-    last = None
-    for attempt in range(3):  # retry transient curl/network failures
+    hdr_path = _hdr_file(headers)
+    try:
+        cmd = ["curl", "-s", "-S", "--http1.1", "-X", "POST",
+               "-H", f"@{hdr_path}",
+               "-d", json.dumps(payload), "--max-time", str(timeout), url]
+        last = None
+        for attempt in range(3):  # retry transient curl/network failures
+            try:
+                r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout + 10)
+            except subprocess.TimeoutExpired:
+                return None, f"timeout >{timeout}s"
+            if r.returncode != 0:
+                last = f"curl rc={r.returncode}: {r.stderr[:200]}"
+                continue
+            try:
+                return json.loads(r.stdout), None
+            except json.JSONDecodeError:
+                last = f"non-JSON: {r.stdout[:200]}"
+                if r.stdout.strip():  # got a body that isn't JSON — don't retry
+                    break
+        return None, last
+    finally:
         try:
-            r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout + 10)
-        except subprocess.TimeoutExpired:
-            return None, f"timeout >{timeout}s"
-        if r.returncode != 0:
-            last = f"curl rc={r.returncode}: {r.stderr[:200]}"
-            continue
-        try:
-            return json.loads(r.stdout), None
-        except json.JSONDecodeError:
-            last = f"non-JSON: {r.stdout[:200]}"
-            if r.stdout.strip():  # got a body that isn't JSON — don't retry
-                break
-    return None, last
+            os.unlink(hdr_path)
+        except OSError:
+            pass
 
 
 # --------------------------------------------------------------------------
@@ -117,7 +134,7 @@ def q_openai(prompt, model, max_tokens=4096):
         return {"success": False, "error": f"shape: {json.dumps(data)[:200]}", "model": model}
 
 
-def _gemini_call(url, prompt, max_tokens, no_think):
+def _gemini_call(url, prompt, max_tokens, no_think, key):
     gen = {"maxOutputTokens": max_tokens}
     if no_think:
         # gemini-3.x are thinking models; thinking can eat the whole token
@@ -129,7 +146,10 @@ def _gemini_call(url, prompt, max_tokens, no_think):
         "systemInstruction": {"parts": [{"text": SYSTEM}]},
         "generationConfig": gen,
     }
-    return _curl(url, ["Content-Type: application/json"], payload)
+    # key travels as a header (via _curl's 0600 header file), not in the
+    # URL — URLs land on argv and in any proxy/access log.
+    return _curl(url, [f"x-goog-api-key: {key}",
+                       "Content-Type: application/json"], payload)
 
 
 def _gemini_text(data):
@@ -143,21 +163,27 @@ def _gemini_text(data):
 
 
 def _curl_get(url, headers, timeout=60):
-    cmd = ["curl", "-s", "-S", "--http1.1", "-X", "GET"]
-    for h in headers:
-        cmd += ["-H", h]
-    cmd += ["--max-time", str(timeout), url]
-    for _ in range(3):
-        try:
-            r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout + 10)
-        except subprocess.TimeoutExpired:
-            return None, "get timeout"
-        if r.returncode == 0:
+    hdr_path = _hdr_file(headers)
+    try:
+        cmd = ["curl", "-s", "-S", "--http1.1", "-X", "GET",
+               "-H", f"@{hdr_path}",
+               "--max-time", str(timeout), url]
+        for _ in range(3):
             try:
-                return json.loads(r.stdout), None
-            except json.JSONDecodeError:
-                return None, f"non-JSON: {r.stdout[:160]}"
-    return None, f"curl rc={r.returncode}: {r.stderr[:160]}"
+                r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout + 10)
+            except subprocess.TimeoutExpired:
+                return None, "get timeout"
+            if r.returncode == 0:
+                try:
+                    return json.loads(r.stdout), None
+                except json.JSONDecodeError:
+                    return None, f"non-JSON: {r.stdout[:160]}"
+        return None, f"curl rc={r.returncode}: {r.stderr[:160]}"
+    finally:
+        try:
+            os.unlink(hdr_path)
+        except OSError:
+            pass
 
 
 def _responses_text(data):
@@ -220,10 +246,10 @@ def q_gemini(prompt, model, max_tokens=4096):
     key = _key("GEMINI_API_KEY")
     if not key:
         return {"success": False, "error": "no GEMINI_API_KEY", "model": model}
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
     # give thinking models headroom; first try keeps thinking on
     budget = max(max_tokens, 2048)
-    data, err = _gemini_call(url, prompt, budget, no_think=False)
+    data, err = _gemini_call(url, prompt, budget, no_think=False, key=key)
     if err:
         return {"success": False, "error": err, "model": model}
     if "error" in data:
@@ -231,7 +257,7 @@ def q_gemini(prompt, model, max_tokens=4096):
     text, finish = _gemini_text(data)
     if not text and finish == "MAX_TOKENS":
         # thinking ate the budget — retry with thinking disabled
-        data, err = _gemini_call(url, prompt, budget, no_think=True)
+        data, err = _gemini_call(url, prompt, budget, no_think=True, key=key)
         if err:
             return {"success": False, "error": err, "model": model}
         if "error" in data:

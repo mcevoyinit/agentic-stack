@@ -15,6 +15,7 @@ import sys
 import json
 import subprocess
 import os
+import tempfile
 import time
 import argparse
 from pathlib import Path
@@ -101,30 +102,42 @@ def call_api(api_url, api_key, model, messages, max_tokens=4096, temperature=0.7
         "temperature": temperature,
     }
 
-    curl_cmd = [
-        'curl', '-s', '-S',
-        '-H', f'Authorization: Bearer {api_key}',
-        '-H', 'Content-Type: application/json',
-        '-X', 'POST',
-        '-d', json.dumps(payload),
-        '--max-time', str(timeout),
-        api_url,
-    ]
+    # Auth header goes to curl via a private 0600 temp file (-H @file),
+    # never on argv — argv is readable by any same-UID process via ps
+    # for the life of the call.
+    fd, hdr_path = tempfile.mkstemp(prefix="hdr-")
+    try:
+        with os.fdopen(fd, "w") as f:
+            f.write(f'Authorization: Bearer {api_key}\n')
+        curl_cmd = [
+            'curl', '-s', '-S',
+            '-H', f'@{hdr_path}',
+            '-H', 'Content-Type: application/json',
+            '-X', 'POST',
+            '-d', json.dumps(payload),
+            '--max-time', str(timeout),
+            api_url,
+        ]
 
-    result = subprocess.run(curl_cmd, capture_output=True, text=True, timeout=timeout + 10)
+        result = subprocess.run(curl_cmd, capture_output=True, text=True, timeout=timeout + 10)
 
-    if result.returncode != 0:
-        raise RuntimeError(f'curl failed: {result.stderr[:200]}')
+        if result.returncode != 0:
+            raise RuntimeError(f'curl failed: {result.stderr[:200]}')
 
-    data = json.loads(result.stdout)
+        data = json.loads(result.stdout)
 
-    if 'error' in data:
-        raise RuntimeError(f"API error: {data['error'].get('message', str(data['error']))}")
+        if 'error' in data:
+            raise RuntimeError(f"API error: {data['error'].get('message', str(data['error']))}")
 
-    if 'choices' in data and data['choices']:
-        return data['choices'][0]['message']['content']
+        if 'choices' in data and data['choices']:
+            return data['choices'][0]['message']['content']
 
-    raise RuntimeError(f'Unexpected response: {result.stdout[:300]}')
+        raise RuntimeError(f'Unexpected response: {result.stdout[:300]}')
+    finally:
+        try:
+            os.unlink(hdr_path)
+        except OSError:
+            pass
 
 
 def run_loop(api_url, api_key, model, model_label, topic, context, rounds, output_dir):

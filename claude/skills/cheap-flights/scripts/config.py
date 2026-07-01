@@ -75,13 +75,16 @@ def ensure_config_dir() -> Path:
 
 
 def write_env(api_key: str) -> Path:
-    """Save the API key to the .env file with mode 600."""
+    """Save the API key to the .env file, 0600 from creation (no window
+    where a default-umask file briefly holds the key)."""
     ensure_config_dir()
     existing = _parse_env_file(ENV_FILE) if ENV_FILE.exists() else {}
     existing["DUFFEL_API_KEY"] = api_key
     body = "\n".join(f"{k}={v}" for k, v in existing.items()) + "\n"
-    ENV_FILE.write_text(body)
-    os.chmod(ENV_FILE, 0o600)
+    fd = os.open(ENV_FILE, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w") as f:
+        f.write(body)
+    os.chmod(ENV_FILE, 0o600)  # in case the file pre-existed with wider mode
     return ENV_FILE
 
 

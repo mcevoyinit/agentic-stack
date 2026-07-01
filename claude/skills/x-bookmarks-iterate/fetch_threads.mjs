@@ -15,21 +15,24 @@
  * TweetDetail GraphQL response. Existing files are skipped (idempotent).
  */
 
-import { writeFileSync, existsSync, mkdirSync, readFileSync, cpSync, rmSync } from 'fs';
+import { writeFileSync, existsSync, mkdirSync, readFileSync, cpSync, rmSync, mkdtempSync } from 'fs';
 import { join } from 'path';
 import { spawn } from 'child_process';
+import { tmpdir } from 'os';
 import WebSocket from 'ws';
 
 const CHROME_PATH = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const CHROME_PROFILE = process.env.CHROME_PROFILE
   || `${process.env.HOME}/Library/Application Support/Google/Chrome`;
-const TEMP_DIR = '/tmp/bookmark-threads-chrome-profile';
+// unpredictable per-run dir in the user's private temp dir — this holds
+// copied Chrome cookies, so it must not live at a fixed world-guessable path
+const TEMP_DIR = mkdtempSync(join(tmpdir(), 'bookmark-threads-chrome-'));
 const DEBUG_PORT = 9235;  // different port from fetch-bookmarks.mjs
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function parseArgs() {
-  const args = { ids: [], out: '/tmp/bookmark-threads', force: false };
+  const args = { ids: [], out: join(tmpdir(), 'bookmark-threads'), force: false };
   for (let i = 2; i < process.argv.length; i++) {
     const a = process.argv[i];
     if (a === '--ids') args.ids = process.argv[++i].split(',').map(s => s.trim()).filter(Boolean);

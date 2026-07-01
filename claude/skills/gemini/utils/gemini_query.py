@@ -16,6 +16,7 @@ import sys
 import os
 import json
 import subprocess
+import tempfile
 from pathlib import Path
 
 DEFAULT_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
@@ -45,29 +46,40 @@ def load_env():
 
 
 def _curl(url, headers, payload, timeout=180):
-    cmd = ["curl", "-s", "-S", "--http1.1", "-X", "POST"]
-    for h in headers:
-        cmd += ["-H", h]
-    cmd += ["-d", json.dumps(payload), "--max-time", str(timeout), url]
-    last = None
-    for _ in range(3):
+    # Headers (which include the API key) go to curl via a private 0600
+    # temp file (-H @file), never on argv — any same-UID process can read
+    # another process's argv through ps/proc for the life of the call.
+    fd, hdr_path = tempfile.mkstemp(prefix="gq-hdr-")
+    try:
+        with os.fdopen(fd, "w") as f:
+            f.write("\n".join(headers) + "\n")
+        cmd = ["curl", "-s", "-S", "--http1.1", "-X", "POST",
+               "-H", f"@{hdr_path}",
+               "-d", json.dumps(payload), "--max-time", str(timeout), url]
+        last = None
+        for _ in range(3):
+            try:
+                r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout + 10)
+            except subprocess.TimeoutExpired:
+                return None, f"timeout >{timeout}s"
+            if r.returncode != 0:
+                last = f"curl rc={r.returncode}: {r.stderr[:200]}"
+                continue
+            try:
+                return json.loads(r.stdout), None
+            except json.JSONDecodeError:
+                last = f"non-JSON: {r.stdout[:200]}"
+                if r.stdout.strip():
+                    break
+        return None, last
+    finally:
         try:
-            r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout + 10)
-        except subprocess.TimeoutExpired:
-            return None, f"timeout >{timeout}s"
-        if r.returncode != 0:
-            last = f"curl rc={r.returncode}: {r.stderr[:200]}"
-            continue
-        try:
-            return json.loads(r.stdout), None
-        except json.JSONDecodeError:
-            last = f"non-JSON: {r.stdout[:200]}"
-            if r.stdout.strip():
-                break
-    return None, last
+            os.unlink(hdr_path)
+        except OSError:
+            pass
 
 
-def _call(url, prompt, max_tokens, no_think):
+def _call(url, prompt, max_tokens, no_think, key):
     gen = {"maxOutputTokens": max_tokens}
     if no_think:
         gen["thinkingConfig"] = {"thinkingBudget": 0}
@@ -76,7 +88,10 @@ def _call(url, prompt, max_tokens, no_think):
         "systemInstruction": {"parts": [{"text": SYSTEM}]},
         "generationConfig": gen,
     }
-    return _curl(url, ["Content-Type: application/json"], payload)
+    # key travels as a header (via _curl's 0600 header file), not in the
+    # URL — URLs land on argv and in any proxy/access log.
+    return _curl(url, [f"x-goog-api-key: {key}",
+                       "Content-Type: application/json"], payload)
 
 
 def _text(data):
@@ -95,16 +110,16 @@ def query_gemini(prompt: str, context: str = "", model: str = None, max_tokens: 
         return {"success": False, "error": "no GEMINI_API_KEY", "response": None}
     model = model or DEFAULT_MODEL
     full = f"{context}\n\n{prompt}" if context else prompt
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
     budget = max(max_tokens, 2048)
-    data, err = _call(url, full, budget, no_think=False)
+    data, err = _call(url, full, budget, no_think=False, key=key)
     if err:
         return {"success": False, "error": err, "response": None}
     if isinstance(data, dict) and "error" in data:
         return {"success": False, "error": data["error"].get("message", "api error"), "response": None}
     text, finish = _text(data)
     if not text and finish == "MAX_TOKENS":
-        data, err = _call(url, full, budget, no_think=True)
+        data, err = _call(url, full, budget, no_think=True, key=key)
         if err:
             return {"success": False, "error": err, "response": None}
         if isinstance(data, dict) and "error" in data:

@@ -11,8 +11,8 @@ description: |
   "pack me a flight", "plane reading on X", "study pack for the plane",
   "make me a whitepaper to learn X offline".
   DO NOT activate for: live research you can keep doing online (use /feynman
-  or /deep-research), a session closeout (use /gtg or /wrap), or a normal PDF
-  with no offline-learning intent (use /academic-format directly).
+  or /deep-research), a session closeout, or a normal PDF with no
+  offline-learning intent (use /academic-format directly).
 ---
 
 # /airplane — Offline Study Pack Builder

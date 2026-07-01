@@ -11,7 +11,7 @@ description: |
   "second-order", "root cause not symptom", "what am I missing", "the real
   reason".
   DO NOT activate for: finishing/hardening the work itself (use /push),
-  closing a session (use /gtg), or simple factual lookups.
+  closing a session, or simple factual lookups.
 ---
 
 # /deeper — One Level Under

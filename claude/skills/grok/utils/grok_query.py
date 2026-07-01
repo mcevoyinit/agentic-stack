@@ -16,6 +16,7 @@ import sys
 import json
 import subprocess
 import os
+import tempfile
 from pathlib import Path
 
 GROK_API_URL = "https://api.x.ai/v1/chat/completions"
@@ -82,13 +83,20 @@ def query_grok(prompt: str, context: str = "") -> dict:
         "temperature": 0.7
     }
 
+    hdr_path = None
     try:
         payload_json = json.dumps(payload)
 
         api_key = get_api_key()
+        # Auth header goes to curl via a private 0600 temp file (-H @file),
+        # never on argv — argv is readable by any same-UID process via ps
+        # for the life of the call.
+        fd, hdr_path = tempfile.mkstemp(prefix="hdr-")
+        with os.fdopen(fd, "w") as f:
+            f.write(f'Authorization: Bearer {api_key}\n')
         curl_cmd = [
             'curl', '-s', '-S',
-            '-H', f'Authorization: Bearer {api_key}',
+            '-H', f'@{hdr_path}',
             '-H', 'Content-Type: application/json',
             '-X', 'POST',
             '-d', payload_json,
@@ -154,6 +162,12 @@ def query_grok(prompt: str, context: str = "") -> dict:
             'error': f'Error: {str(e)}',
             'raw': None
         }
+    finally:
+        if hdr_path:
+            try:
+                os.unlink(hdr_path)
+            except OSError:
+                pass
 
 
 def main():

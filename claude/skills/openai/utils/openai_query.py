@@ -14,6 +14,7 @@ import sys
 import os
 import json
 import subprocess
+import tempfile
 from pathlib import Path
 
 OPENAI_URL = "https://api.openai.com/v1/chat/completions"
@@ -44,26 +45,37 @@ def load_env():
 
 
 def _curl(url, headers, payload, timeout=180):
-    cmd = ["curl", "-s", "-S", "--http1.1", "-X", "POST"]
-    for h in headers:
-        cmd += ["-H", h]
-    cmd += ["-d", json.dumps(payload), "--max-time", str(timeout), url]
-    last = None
-    for _ in range(3):
+    # Headers (which include the API key) go to curl via a private 0600
+    # temp file (-H @file), never on argv — any same-UID process can read
+    # another process's argv through ps/proc for the life of the call.
+    fd, hdr_path = tempfile.mkstemp(prefix="oq-hdr-")
+    try:
+        with os.fdopen(fd, "w") as f:
+            f.write("\n".join(headers) + "\n")
+        cmd = ["curl", "-s", "-S", "--http1.1", "-X", "POST",
+               "-H", f"@{hdr_path}",
+               "-d", json.dumps(payload), "--max-time", str(timeout), url]
+        last = None
+        for _ in range(3):
+            try:
+                r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout + 10)
+            except subprocess.TimeoutExpired:
+                return None, f"timeout >{timeout}s"
+            if r.returncode != 0:
+                last = f"curl rc={r.returncode}: {r.stderr[:200]}"
+                continue
+            try:
+                return json.loads(r.stdout), None
+            except json.JSONDecodeError:
+                last = f"non-JSON: {r.stdout[:200]}"
+                if r.stdout.strip():
+                    break
+        return None, last
+    finally:
         try:
-            r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout + 10)
-        except subprocess.TimeoutExpired:
-            return None, f"timeout >{timeout}s"
-        if r.returncode != 0:
-            last = f"curl rc={r.returncode}: {r.stderr[:200]}"
-            continue
-        try:
-            return json.loads(r.stdout), None
-        except json.JSONDecodeError:
-            last = f"non-JSON: {r.stdout[:200]}"
-            if r.stdout.strip():
-                break
-    return None, last
+            os.unlink(hdr_path)
+        except OSError:
+            pass
 
 
 def query_openai(prompt: str, context: str = "", model: str = None, max_tokens: int = 8192, timeout: int = 280) -> dict:

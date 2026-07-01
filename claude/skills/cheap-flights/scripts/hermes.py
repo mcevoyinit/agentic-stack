@@ -183,10 +183,23 @@ def cmd_whoami(_args: argparse.Namespace) -> int:
 
 
 def cmd_key_set(args: argparse.Namespace) -> int:
-    if not args.api_key.startswith(("duffel_test_", "duffel_live_")):
+    key = args.api_key
+    if key is None or key == "-":
+        # Read the key off stdin instead of argv: argv is visible to any
+        # same-UID process via ps and lands in shell history.
+        import getpass
+        if sys.stdin.isatty():
+            key = getpass.getpass("Duffel API key (input hidden): ").strip()
+        else:
+            key = sys.stdin.readline().strip()
+    else:
+        print("note: passing the key as an argument exposes it via ps and "
+              "shell history — prefer `hermes key set -` and paste it.",
+              file=sys.stderr)
+    if not key.startswith(("duffel_test_", "duffel_live_")):
         print("Key should start with 'duffel_test_' or 'duffel_live_'.", file=sys.stderr)
         return 2
-    path = config.write_env(args.api_key)
+    path = config.write_env(key)
     print(f"Saved key to {path} (mode 600).")
     print(f"Mode: {config.duffel_mode()}")
     return 0
@@ -318,8 +331,12 @@ def cmd_profile_init(_args: argparse.Namespace) -> int:
         }]
     p["loyalty_programmes"] = existing.get("loyalty_programmes") or []
     payload = {"primary": p}
-    config.PROFILE_FILE.write_text(json.dumps(payload, indent=2))
     import os as _os
+    # 0600 from creation — passport/DOB PII must never be briefly
+    # group/world-readable under a default umask
+    fd = _os.open(config.PROFILE_FILE, _os.O_WRONLY | _os.O_CREAT | _os.O_TRUNC, 0o600)
+    with _os.fdopen(fd, "w") as f:
+        f.write(json.dumps(payload, indent=2))
     _os.chmod(config.PROFILE_FILE, 0o600)
     print(f"\nSaved {config.PROFILE_FILE} (mode 600).")
     return 0
@@ -353,7 +370,9 @@ def _build_parser() -> argparse.ArgumentParser:
 
     ks = sub.add_parser("key").add_subparsers(dest="key_cmd", required=True)
     kset = ks.add_parser("set")
-    kset.add_argument("api_key")
+    kset.add_argument("api_key", nargs="?", default=None,
+                      help="the key, or '-' (or omit) to read from stdin — "
+                           "preferred, keeps the key out of ps/history")
     kset.set_defaults(fn=cmd_key_set)
 
     pp = sub.add_parser("profile").add_subparsers(dest="profile_cmd", required=True)

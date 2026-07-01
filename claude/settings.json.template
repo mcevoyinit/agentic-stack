@@ -72,7 +72,7 @@
       "Bash(kubectl delete *)"
     ]
   },
-  "_comment_hooks": "Every hook below ships in claude/hooks/ and works standalone. Hooks marked OPTIONAL reference infra-templates/ components that need a one-time setup script run first (recall-db, knowledge-base, canonical) — delete the hook entry if you don't want that component.",
+  "_comment_hooks": "The Stop and SessionEnd hooks ship in claude/hooks/ and work standalone. The canonical SessionStart hook is OPTIONAL: its path (~/.claude/infra/canonical.py) only exists after you run infra-templates/canonical/setup.py once (that script installs the CLI there and creates the empty db) — delete that hook entry if you don't use the canonical registry. claude/hooks/ also ships sync-session-index.py, unwired: an optional Stop hook that repairs sessions-index.json when transcripts go missing from /resume; wire it yourself if you hit that.",
   "hooks": {
     "Stop": [
       {

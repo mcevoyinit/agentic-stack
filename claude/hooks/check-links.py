@@ -16,7 +16,7 @@ Loop guard: the same failure set blocks only ONCE per session, so the turn
 is never trapped if a link genuinely can't be made to pass (e.g. a host that
 hard-blocks automated fetches). When that happens, say so in the reply.
 """
-import sys, json, re, hashlib, subprocess, os
+import sys, json, re, hashlib, subprocess, os, tempfile
 
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
       "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36")
@@ -162,7 +162,10 @@ def main():
     sig = hashlib.sha1((sid + "|" +
         "|".join(sorted(u for u, _ in dead)) + "#" +
         "|".join(sorted(u for u, _ in mism))).encode()).hexdigest()
-    seenf = f"/tmp/claude-linkcheck-{sid}.txt"
+    # per-user temp dir (private on macOS), sid sanitised so a hostile
+    # session_id can't point the write elsewhere
+    safe_sid = re.sub(r"[^A-Za-z0-9_-]", "_", sid)[:64]
+    seenf = os.path.join(tempfile.gettempdir(), f"claude-linkcheck-{safe_sid}.txt")
     prev = set()
     try:
         if os.path.exists(seenf):

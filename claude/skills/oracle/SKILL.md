@@ -80,13 +80,10 @@ After scoring, use this matrix. Find the row that best matches your scores:
 |---------|---|---|---|---|-------|-----------|
 | **Prod fire** | 5 | 3+ | any | 5 | `/triage` | Stop bleeding first |
 | **Clear bug** | 3-4 | 4-5 | 4-5 | 5 | `/forensic` | Exact target, scientific method |
-| **Build broken** | 4 | 5 | 5 | 5 | `/build-fix` | Minimal-change, get green |
 | **Slow code** | 3-4 | 3-4 | 4-5 | 5 | `/profiler` | Measure before optimize |
 | **Quick fix** | 3-4 | 4-5 | 5 | 5 | `/surgeon` | Smallest diff possible |
 | **Pre-code design** | 2-3 | 2-3 | 2-3 | 4 | `/brainstorm` | Refine before building |
 | **Map the system** | 2-3 | 2-3 | 2-3 | 4 | `/cartographer` | Understand before changing |
-| **Match patterns** | 3 | 3-4 | 4-5 | 4-5 | `/scaffold` | Follow existing conventions |
-| **Big file** | 2-3 | 3-4 | 3-4 | 4-5 | `/monolith-decomposition` | Audit then extract |
 | **A vs B** | 2-3 | 3 | any | 2-3 | `/kamikaze` | Adversarial convergence |
 | **Blind spots** | 1-2 | 1-2 | any | 2-3 | `/looper` | Independent breadth |
 | **Strategic call** | 2-3 | 2-3 | 1-2 | 2 | `/kamikaze` | Structured deliberation |
@@ -94,9 +91,6 @@ After scoring, use this matrix. Find the row that best matches your scores:
 | **Code review** | 2-3 | 3-4 | 3-4 | 5 | `/reviewer` | Read-only findings |
 | **Security concern** | 3-4 | 2-3 | 3-4 | 5 | `/paranoid` | Assume hostile input |
 | **Legacy code** | 2-3 | 2-3 | 3-4 | 5 | `/archaeologist` | Understand before touching |
-| **Security audit** | 2-3 | 2-3 | 3 | 5 | `/gemini-code-auditor` | Adversarial structural review |
-| **Stakeholder sim** | 1-2 | 1-2 | 1-2 | 2 | `/mirofish` | Agent-based scenario modeling |
-| **Wealth/life** | 1-2 | 1-2 | 1 | 1-2 | `/naval` | Naval's frameworks |
 | **Person intel** | 1 | 2-3 | 1 | 1 | `/person-research` | Discrepancy engine |
 | **Company intel** | 1 | 2-3 | 1 | 1 | `/due-diligence` | Investment analysis |
 | **Competitors** | 1-2 | 2-3 | 1-2 | 1 | `/competitive-analysis` | Council-powered landscape |
@@ -109,7 +103,6 @@ After scoring, use this matrix. Find the row that best matches your scores:
 | **Cap table** | 1 | 2-3 | 1 | 1 | `/cap-table` | SEC triangulation |
 | **Deep research** | 1-2 | 2-3 | 1-2 | 1-2 | `/feynman` | Source-heavy with citations + adversarial verification |
 | **Prove it works** | 3-4 | 3-4 | 3-5 | 5 | `/ironclad` | Won't stop until verified end-to-end |
-| **Ship fast** | 3-4 | 3-4 | any | 4-5 | `/speedrun` | MVP in minutes, working > pretty |
 | **Batch investigate** | 2 | 2-3 | 2-3 | 4-5 | `/autoresearch-loop` | 5+ open problems, autonomous loop |
 
 ---
@@ -143,7 +136,6 @@ Some problems span multiple categories. Detect these patterns:
 | **Understand → Decide** | "Should we refactor the auth system?" | `/cartographer` → `/kamikaze` |
 | **Debug → Optimize** | "It's wrong AND slow" | `/forensic` → `/profiler` |
 | **Design → Validate** | "Here's my plan, am I missing anything?" | `/brainstorm` → `/looper` |
-| **Map → Decompose** | "This file is huge and I don't understand it" | `/cartographer` → `/monolith-decomposition` |
 | **Scan → Deep dive** | "What are all the risks here?" | `/looper` → `/kamikaze` on flagged items |
 | **Research → Decide** | "Should we invest in X?" | `/due-diligence` → `/kamikaze` |
 
@@ -161,7 +153,6 @@ If dimensional scoring feels like overkill for an obvious case, use the decision
 |--------|-------|-----|
 | Error message, stack trace, "why is X broken" | `/forensic` | Scientific method debugging — reproduce, hypothesize, instrument, fix |
 | Production incident, P1, things are down | `/triage` | Containment first, forensics second |
-| Build/compile/dependency error | `/build-fix` | Minimal-change resolution, no yak-shaving |
 | Performance issue with data | `/profiler` | Measure first, optimize second |
 
 ### Is it a DESIGN or ARCHITECTURE question?
@@ -170,8 +161,6 @@ If dimensional scoring feels like overkill for an obvious case, use the decision
 |--------|-------|-----|
 | "How should I structure this?" before coding | `/brainstorm` | Socratic refinement of what to build and why |
 | Need to map existing system before changing it | `/cartographer` | Zoom out, map dependencies, name concepts |
-| Large file needs decomposition | `/monolith-decomposition` | Audit-first extraction with security check |
-| Need to match existing codebase patterns | `/scaffold` | Consistency over cleverness |
 
 ### Is it a DECISION that needs deep analysis?
 
@@ -204,15 +193,7 @@ If dimensional scoring feels like overkill for an obvious case, use the decision
 | Review someone else's code / PR | `/reviewer` | Read-only, max 5 findings, evidence-based |
 | Security concerns, hostile input | `/paranoid` | Assume hostile input, check every boundary |
 | Legacy code, don't fully understand it | `/archaeologist` | Characterization tests first, minimal blast radius |
-| Need structural security audit | `/gemini-code-auditor` | Adversarial line-by-line review |
 | Want minimal-change fix | `/surgeon` | Smallest diff that solves the problem |
-
-### Is it a SIMULATION or SCENARIO question?
-
-| Signal | Route | Why |
-|--------|-------|-----|
-| Multi-stakeholder scenario, "what would X think?" | `/mirofish` | Swarm intelligence with distinct agent personalities |
-| Wealth/life strategy through Naval's lens | `/naval` | Specific knowledge + leverage frameworks |
 
 ### Nothing matched?
 
@@ -246,7 +227,6 @@ Sometimes the best approach is sequential:
 |---------|------|
 | `/brainstorm` → `/kamikaze` | Design question that needs refinement THEN deep analysis |
 | `/forensic` → `/profiler` | Bug turns out to be a performance issue |
-| `/cartographer` → `/monolith-decomposition` | Map it, then decompose it |
 | `/looper` → `/kamikaze` | Broad scan for unknowns, then deep dive on what surfaces |
 
 If you detect a two-stage problem, say so and run the first stage. After it completes, route to the second.
@@ -255,7 +235,7 @@ If you detect a two-stage problem, say so and run the first stage. After it comp
 
 | Tier | Skills | Approx Cost |
 |------|--------|-------------|
-| Free | forensic, brainstorm, cartographer, surgeon, scaffold, paranoid, reviewer, archaeologist, profiler, triage, build-fix, rubber-duck | $0 (Claude only) |
+| Free | forensic, brainstorm, cartographer, surgeon, paranoid, reviewer, archaeologist, profiler, triage | $0 (Claude only) |
 | Low | gemini-loop, openai-loop, grok-loop | $0.20-0.60 |
 | Medium | looper | $0.60-4.30 |
 | High | kamikaze | $3-5 |

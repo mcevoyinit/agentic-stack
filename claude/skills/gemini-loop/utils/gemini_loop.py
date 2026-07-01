@@ -20,6 +20,7 @@ import json
 import subprocess
 import os
 import argparse
+import tempfile
 import time
 from pathlib import Path
 from datetime import datetime
@@ -60,6 +61,16 @@ def get_api_key():
     return _api_key
 
 
+def _auth_hdr_file(*headers):
+    """Auth header goes to curl via a private 0600 temp file (-H @file),
+    never on argv — argv is readable by any same-UID process via ps for
+    the life of the call. Caller must unlink the returned path."""
+    fd, path = tempfile.mkstemp(prefix="hdr-")
+    with os.fdopen(fd, "w") as f:
+        f.write("\n".join(headers) + "\n")
+    return path
+
+
 def _is_retryable(error_msg: str, returncode: int) -> bool:
     """Return True if this error is worth retrying (503 demand spike, timeout)."""
     if returncode == 28:  # curl timeout
@@ -84,9 +95,10 @@ def call_gemini(prompt: str, round_label: str = "", verbose: bool = True) -> str
     }
 
     api_key = get_api_key()
+    hdr_path = _auth_hdr_file(f'x-goog-api-key: {api_key}')
     curl_cmd = [
         'curl', '-s', '-S',
-        '-H', f'x-goog-api-key: {api_key}',
+        '-H', f'@{hdr_path}',
         '-H', 'Content-Type: application/json',
         '-X', 'POST',
         '-d', json.dumps(payload),
@@ -94,71 +106,77 @@ def call_gemini(prompt: str, round_label: str = "", verbose: bool = True) -> str
         GEMINI_API_URL
     ]
 
-    last_error = None
-    for attempt in range(MAX_RETRIES):
-        if verbose:
-            attempt_label = f" (attempt {attempt + 1}/{MAX_RETRIES})" if attempt > 0 else ""
-            print(f"\n{'='*60}", flush=True)
-            print(f"  Calling Gemini{label}{attempt_label}...", flush=True)
-            print(f"{'='*60}", flush=True)
+    try:
+        last_error = None
+        for attempt in range(MAX_RETRIES):
+            if verbose:
+                attempt_label = f" (attempt {attempt + 1}/{MAX_RETRIES})" if attempt > 0 else ""
+                print(f"\n{'='*60}", flush=True)
+                print(f"  Calling Gemini{label}{attempt_label}...", flush=True)
+                print(f"{'='*60}", flush=True)
 
-        t0 = time.time()
-        try:
-            result = subprocess.run(curl_cmd, capture_output=True, text=True, timeout=185)
-        except subprocess.TimeoutExpired:
-            last_error = "subprocess timeout"
-            if attempt < MAX_RETRIES - 1:
-                delay = RETRY_DELAYS[attempt]
-                print(f"  ⏳ Timeout. Retrying in {delay}s...", flush=True)
-                time.sleep(delay)
-            continue
-
-        elapsed = time.time() - t0
-        returncode = result.returncode
-
-        # curl-level failure (timeout = exit 28, network errors, etc.)
-        if returncode != 0:
-            last_error = f"curl failed (exit {returncode}): {result.stderr.strip()}"
-            if _is_retryable(result.stderr, returncode) and attempt < MAX_RETRIES - 1:
-                delay = RETRY_DELAYS[attempt]
-                print(f"  ⏳ {last_error[:80]}. Retrying in {delay}s...", flush=True)
-                time.sleep(delay)
+            t0 = time.time()
+            try:
+                result = subprocess.run(curl_cmd, capture_output=True, text=True, timeout=185)
+            except subprocess.TimeoutExpired:
+                last_error = "subprocess timeout"
+                if attempt < MAX_RETRIES - 1:
+                    delay = RETRY_DELAYS[attempt]
+                    print(f"  ⏳ Timeout. Retrying in {delay}s...", flush=True)
+                    time.sleep(delay)
                 continue
-            raise RuntimeError(last_error)
 
-        # Parse JSON
+            elapsed = time.time() - t0
+            returncode = result.returncode
+
+            # curl-level failure (timeout = exit 28, network errors, etc.)
+            if returncode != 0:
+                last_error = f"curl failed (exit {returncode}): {result.stderr.strip()}"
+                if _is_retryable(result.stderr, returncode) and attempt < MAX_RETRIES - 1:
+                    delay = RETRY_DELAYS[attempt]
+                    print(f"  ⏳ {last_error[:80]}. Retrying in {delay}s...", flush=True)
+                    time.sleep(delay)
+                    continue
+                raise RuntimeError(last_error)
+
+            # Parse JSON
+            try:
+                data = json.loads(result.stdout)
+            except json.JSONDecodeError as e:
+                raise RuntimeError(f"Invalid JSON: {e}\nResponse: {result.stdout[:300]}")
+
+            # API-level error
+            if 'error' in data:
+                msg = data['error'].get('message', 'Unknown')
+                last_error = f"API error: {msg}"
+                if _is_retryable(msg, 0) and attempt < MAX_RETRIES - 1:
+                    delay = RETRY_DELAYS[attempt]
+                    print(f"  ⏳ {last_error[:100]}. Retrying in {delay}s...", flush=True)
+                    time.sleep(delay)
+                    continue
+                raise RuntimeError(last_error)
+
+            # Empty candidates
+            if 'candidates' not in data or not data['candidates']:
+                raise RuntimeError(f"No candidates in response: {result.stdout[:300]}")
+
+            # Success
+            candidate = data['candidates'][0]
+            parts = candidate.get('content', {}).get('parts', [])
+            text = parts[0].get('text', '') if parts else ''
+
+            if verbose:
+                tokens = data.get('usageMetadata', {})
+                print(f"  ✓ Done in {elapsed:.1f}s | in={tokens.get('promptTokenCount','?')} out={tokens.get('candidatesTokenCount','?')} tokens", flush=True)
+
+            return text
+
+        raise RuntimeError(f"Exhausted {MAX_RETRIES} retries. Last error: {last_error}")
+    finally:
         try:
-            data = json.loads(result.stdout)
-        except json.JSONDecodeError as e:
-            raise RuntimeError(f"Invalid JSON: {e}\nResponse: {result.stdout[:300]}")
-
-        # API-level error
-        if 'error' in data:
-            msg = data['error'].get('message', 'Unknown')
-            last_error = f"API error: {msg}"
-            if _is_retryable(msg, 0) and attempt < MAX_RETRIES - 1:
-                delay = RETRY_DELAYS[attempt]
-                print(f"  ⏳ {last_error[:100]}. Retrying in {delay}s...", flush=True)
-                time.sleep(delay)
-                continue
-            raise RuntimeError(last_error)
-
-        # Empty candidates
-        if 'candidates' not in data or not data['candidates']:
-            raise RuntimeError(f"No candidates in response: {result.stdout[:300]}")
-
-        # Success
-        candidate = data['candidates'][0]
-        parts = candidate.get('content', {}).get('parts', [])
-        text = parts[0].get('text', '') if parts else ''
-
-        if verbose:
-            tokens = data.get('usageMetadata', {})
-            print(f"  ✓ Done in {elapsed:.1f}s | in={tokens.get('promptTokenCount','?')} out={tokens.get('candidatesTokenCount','?')} tokens", flush=True)
-
-        return text
-
-    raise RuntimeError(f"Exhausted {MAX_RETRIES} retries. Last error: {last_error}")
+            os.unlink(hdr_path)
+        except OSError:
+            pass
 
 
 # ─── Round Prompts ────────────────────────────────────────────────────────────

@@ -21,8 +21,12 @@ to read and how stale the last verification is.
 python3 infra-templates/canonical/setup.py
 ```
 
-This creates `~/.claude-canonical/canonical.db` (or `$CANONICAL_DB`
-if set) with the schema only. No rows.
+This does two things:
+1. Creates `~/.claude-canonical/canonical.db` (or `$CANONICAL_DB` /
+   `--db-path` if set) with the schema only. No rows.
+2. Copies `canonical.py` to `~/.claude/infra/canonical.py` (or
+   `$CLAUDE_HOME/infra/`), which is the path the optional SessionStart
+   hook in `settings.json` invokes. Skip with `--no-install-cli`.
 
 ## Usage
 

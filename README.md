@@ -10,8 +10,9 @@ Everything here is either generic (ships verbatim, useful as-is) or a
 template (ships with personal data stripped, marked `<CUSTOMISE>`
 where you need to plug in your own paths/accounts/data). Nothing in
 this bundle contains real credentials, real personal data, or
-populated databases — see `SANITISATION-REPORT.md` in the parent
-directory this was built from for the full audit trail.
+populated databases. (A full sanitisation audit trail,
+`SANITISATION-REPORT.md`, is kept alongside the bundle's source —
+ask whoever gave you this bundle if you want it.)
 
 ## What's in here
 
@@ -19,6 +20,7 @@ directory this was built from for the full audit trail.
 agentic-stack-starter/
   README.md                  this file
   install.sh                 copies/symlinks everything into ~/.claude
+  verify-install.sh          post-install doctor — run after install.sh
   claude/
     CLAUDE.md.template         global instructions skeleton
     settings.json.template     env/permissions/hooks/mcp, placeholders only
@@ -45,6 +47,7 @@ agentic-stack-starter/
 ```bash
 cd agentic-stack-starter
 ./install.sh
+./verify-install.sh   # doctor: checks the install, reports what's missing
 ```
 
 `install.sh` copies `claude/` into `~/.claude/` (backing up anything
@@ -78,5 +81,5 @@ gws, nimble, x — you bring your own or use community servers), the
 indexer/embedder that would populate `recall-db`, the ingestion
 pipeline for `knowledge-base`, and every skill that was inherently
 about one person's specific life (finance tracking, health, a named
-business deal, a named relationship). `SANITISATION-REPORT.md` (built
-alongside this bundle, one directory up) lists every exclusion and why.
+business deal, a named relationship). The `SANITISATION-REPORT.md`
+kept with the bundle's source lists every exclusion and why.

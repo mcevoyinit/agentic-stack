@@ -9,7 +9,7 @@ description: |
   Trigger: "/push", "push", "push further", "go further", "you're not done",
   "don't stop there", "finish the job", "one more level", "keep going".
   DO NOT activate for: deeper insight/analysis on a finding (use /deeper),
-  closing a session (use /gtg), or when the work is genuinely verified done.
+  closing a session, or when the work is genuinely verified done.
 ---
 
 # /push — Don't Stop Short
