@@ -4,7 +4,7 @@ description: |
   Run all three self-deliberation loops (Gemini, GPT, Grok) in parallel. Each model argues with
   itself independently through 3-4 rounds (Analyst → Adversary → Integrator → Decider). No chairman,
   no cross-model synthesis — just three independent battle-tested analyses side by side.
-  Lighter than /council or /kamikaze. Use when you want depth from multiple models without the
+  Lighter than /kamikaze. Use when you want depth from multiple models without the
   overhead of structured council deliberation.
   Trigger: "looper", "all loops", "triple loop", "run all loops", "loop all models".
 version: 1.0.0
@@ -44,7 +44,7 @@ No chairman. No synthesis across models. Just three independently stressed analy
 - You want to compare how different models reason through the same problem
 - Depth matters more than consensus
 
-**Use `/council` or `/kamikaze` instead when**:
+**Use `/kamikaze` instead when**:
 - You need a synthesized answer across models
 - Cross-model adversarial debate matters
 - You want a chairman to resolve disagreements

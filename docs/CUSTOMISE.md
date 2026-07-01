@@ -42,6 +42,11 @@ tour through the same markers, grouped by what you're trying to do.
 - [ ] For each server you add: get your own credentials, export them
       as env vars in your shell profile (never commit them), reference
       as `${VAR_NAME}` in `settings.json`.
+- [ ] The multi-model skills (`gemini`, `openai`, `grok`, `looper`,
+      `phoenix`, `kamikaze`, `best-models`) read provider keys from
+      `~/.claude/api-keys.env` first (falling back to `.env.local` /
+      the environment). Create that file as `KEY=value` lines and
+      `chmod 600` it — it is never shipped or committed.
 - [ ] `claude/commands/spike.md` → set `$SPIKE_GCP_PROJECT` if you use
       the GCP demo-VM command.
 

@@ -149,7 +149,7 @@ START: What question are we answering?
 - Needs "red team", "adversarial analysis", "worst case"
 
 **DO NOT activate** for:
-- Simple questions (use regular `/council` instead)
+- Simple questions (use a single `/gemini`, `/openai`, or `/grok` call instead)
 - Single-round council needs
 - When user explicitly wants quick answers
 
@@ -192,7 +192,7 @@ python3 ~/.claude/skills/kamikaze/utils/kamikaze_orchestrator_v2.py \
 - Save outputs to `docs/kamikaze/` for reference
 
 ### DON'T:
-- Run Kamikaze for simple questions (use `/council`)
+- Run Kamikaze for simple questions (a single `/gemini`/`/openai`/`/grok` call is enough)
 - Override early stopping without specific reason
 - Skip reading the minority opinions
 - Ignore flip conditions - they reveal fragility!

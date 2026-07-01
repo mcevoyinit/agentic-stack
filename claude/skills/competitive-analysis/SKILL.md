@@ -42,7 +42,7 @@ The competitive analysis operates in **four phases**:
 ┌─────────────────────────────────────────────────────────────┐
 │              PHASE 2: MULTI-MODEL ANALYSIS                  │
 │   ┌─────────┐    ┌─────────┐    ┌─────────┐               │
-│   │ /council│    │/kamikaze│    │  Claude │               │
+│   │ council │    │/kamikaze│    │  Claude │               │
 │   │ 3 models│    │ 5 rounds│    │Synthesis│               │
 │   └────┬────┘    └────┬────┘    └────┬────┘               │
 │        └──────────────┼──────────────┘                      │
@@ -91,9 +91,9 @@ The competitive analysis operates in **four phases**:
 
 ### Phase 2: Multi-Model Analysis
 
-1. **Run AI Council**
+1. **Run AI Council** (the council layer ships inside the kamikaze skill)
    ```bash
-   python3 ~/.claude/skills/council/utils/council_query.py \
+   python3 ~/.claude/skills/kamikaze/utils/council_query.py \
      "Analyze [Company]'s competitive position in [Market]" \
      "[Context from Phase 1]" \
      --full-council
@@ -232,7 +232,7 @@ python3 ~/.claude/skills/competitive-analysis/utils/competitive_analyzer.py \
 
 ### DO:
 - Gather fresh market intelligence before analysis
-- Run both /council AND /kamikaze for major analyses
+- Run both the AI council layer AND /kamikaze for major analyses
 - Include competitor funding and reach metrics
 - Cross-reference with internal docs
 - Generate PDF for sharing
@@ -264,13 +264,13 @@ python3 ~/.claude/skills/competitive-analysis/utils/competitive_analyzer.py \
 ## Integration with Other Skills
 
 This skill integrates with:
-- **council**: Multi-model parallel opinions
+- **council** (ships in `kamikaze/utils/`): Multi-model parallel opinions
 - **kamikaze**: Recursive strategic deliberation
 - **gemini/openai/grok**: Individual model queries
 
 Typical flow:
 ```
-/competitive-analysis → /council → /kamikaze → Report
+/competitive-analysis → AI council → /kamikaze → Report
 ```
 
 ---

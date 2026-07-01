@@ -1,3 +1,7 @@
+---
+description: Spin up a temporary GCP VM for quick demos, testing, and sharing
+---
+
 # Spike Droplet - Temporary GCP VM for Quick Demos
 
 Spin up a temporary GCP VM for quick demos, testing, and sharing. Auto-provisions with Node.js and can deploy any local project.

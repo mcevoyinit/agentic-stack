@@ -20,9 +20,9 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-# Paths
+# Paths — the council layer ships inside the kamikaze skill
 SKILLS_DIR = Path.home() / ".claude" / "skills"
-COUNCIL_SCRIPT = SKILLS_DIR / "council" / "utils" / "council_query.py"
+COUNCIL_SCRIPT = SKILLS_DIR / "kamikaze" / "utils" / "council_query.py"
 KAMIKAZE_SCRIPT = SKILLS_DIR / "kamikaze" / "utils" / "kamikaze_orchestrator_v4.py"
 RAISE_DIR = Path.home() / "yourco" / "raise"
 OUTPUT_DIR = Path.home() / "yourco" / "docs"

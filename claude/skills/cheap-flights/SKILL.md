@@ -327,8 +327,8 @@ Strong Customer Authentication (SCA / 3D Secure). Rationale:
 | Award / points | Manual | No API path. Print deep-link to airline award portal. |
 | Hidden city (Skiplagged) | Manual | Print Skiplagged URL. Never auto-book — TOS risk. |
 
-Dispatch by IATA carrier code in `references/carrier_routing.md` (to be
-created at build time). Default = manual deep-link if uncertain.
+Dispatch by IATA carrier code in `references/carrier_routing.md` (ships
+with this skill). Default = manual deep-link if uncertain.
 
 #### Components to build
 

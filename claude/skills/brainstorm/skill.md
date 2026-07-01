@@ -4,8 +4,8 @@ description: |
   Structured design thinking before any code is written. Socratic refinement of what
   you're actually building, why, and what the key decisions are. Prevents the #1 AI
   coding failure mode: jumping straight into implementation without understanding the
-  problem. Produces a clear spec that can be handed to /ralph, /ironclad, or manual
-  execution.
+  problem. Produces a clear spec that can be handed to /ironclad, /autoresearch-loop,
+  or manual execution.
   Trigger: "brainstorm", "let's think about this first", "what should we build",
   "design this", "spec this out", "before we code".
 ---
@@ -113,7 +113,7 @@ The final output is a spec block that can be handed to any execution skill:
 ```
 
 Once the spec is approved, suggest the appropriate next step:
-- `/ralph` for autonomous multi-task execution
+- `/autoresearch-loop` for autonomous multi-task execution
 - `/ironclad` for verified end-to-end correctness
 - `/surgeon` for minimal targeted changes
 - Manual execution for simple tasks
