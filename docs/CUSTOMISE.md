@@ -19,8 +19,8 @@ tour through the same markers, grouped by what you're trying to do.
 - [ ] `claude/settings.json.template` → copy to
       `~/.claude/settings.json`, review the `hooks` block (two hooks
       are real and work immediately: `check-links.py` and
-      `session-end-autocapture.sh`; the `canonical inject` hook is
-      optional, delete it if you don't set up the canonical registry).
+      `session-end-autocapture.sh`; an optional `canonical inject`
+      SessionStart hook can be added later — see step 3 below).
 - [ ] `claude/rules/drafts.md` → set `$DRAFTS_DIR` in your shell
       profile, or accept the default.
 - [ ] `claude/rules/reminders.md` → set `$TODO_FILE` in your shell
@@ -53,11 +53,11 @@ tour through the same markers, grouped by what you're trying to do.
 ## 3. Stand up the infra templates (all optional)
 
 - [ ] `infra-templates/canonical/` → run `setup.py` (creates the empty
-      db AND installs the CLI to `~/.claude/infra/canonical.py`, which
-      is where the optional SessionStart hook in `settings.json`
-      points), then start recording concepts with `canonical set`.
-      Until you run `setup.py`, delete that hook entry — its path
-      doesn't exist yet.
+      db AND installs the CLI to `~/.claude/infra/canonical.py`), then
+      start recording concepts with `canonical set`. To surface your
+      concepts at the top of every session, add the SessionStart hook
+      snippet from `infra-templates/canonical/README.md` to
+      `settings.json` — it's opt-in, not wired by default.
 - [ ] `infra-templates/recall-db/` → run `setup.py` to create the
       empty schema, then write your own indexer (walks your
       `~/.claude/projects/*/*.jsonl` transcripts) and your own query

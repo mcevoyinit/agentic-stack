@@ -4,9 +4,9 @@
 Does two things:
   1. Creates an empty canonical.db (schema only, no rows).
   2. Installs canonical.py to $CLAUDE_HOME/infra/canonical.py (default
-     ~/.claude/infra/) so the optional SessionStart hook in
-     settings.json — `python3 ~/.claude/infra/canonical.py inject` —
-     resolves after setup.
+     ~/.claude/infra/) so the optional SessionStart hook —
+     `python3 ~/.claude/infra/canonical.py inject`, snippet in this
+     folder's README.md — resolves once you add it to settings.json.
 
 Usage:
     python3 setup.py [--db-path PATH] [--no-install-cli]
@@ -52,7 +52,8 @@ def main():
         dst = os.path.join(infra_dir, "canonical.py")
         shutil.copyfile(src, dst)
         print(f"canonical CLI installed at {dst}")
-        print("  (the optional SessionStart hook in settings.json points here)")
+        print("  to surface concepts every session, add the SessionStart hook")
+        print("  snippet from this folder's README.md to ~/.claude/settings.json")
 
 
 if __name__ == "__main__":

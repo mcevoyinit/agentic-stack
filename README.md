@@ -1,7 +1,7 @@
 # agentic-stack-starter
 
 A privacy-sanitised, installable export of a real, daily-driven Claude
-Code agentic stack: ~60 skills, a rules pattern, a hooks framework, an
+Code agentic stack: 66 skills, a rules pattern, a hooks framework, an
 MCP server reference list, and three runnable empty-schema infra
 templates (canonical-facts registry, conversation recall index,
 structured knowledge base).
@@ -26,7 +26,7 @@ agentic-stack-starter/
     settings.json.template     env/permissions/hooks/mcp, placeholders only
     statusline.sh               context-usage status line
     rules/                      5 composable instruction-pattern files
-    skills/                     ~60 skills (see docs/SKILL-INDEX.md)
+    skills/                     66 skills (see docs/SKILL-INDEX.md)
     hooks/                      Stop/SessionEnd/SessionStart hook scripts
     commands/                   slash commands (design review, spike VM, etc)
   mcp/

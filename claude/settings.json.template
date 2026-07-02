@@ -72,7 +72,7 @@
       "Bash(kubectl delete *)"
     ]
   },
-  "_comment_hooks": "The Stop and SessionEnd hooks ship in claude/hooks/ and work standalone. The canonical SessionStart hook is OPTIONAL: its path (~/.claude/infra/canonical.py) only exists after you run infra-templates/canonical/setup.py once (that script installs the CLI there and creates the empty db) — delete that hook entry if you don't use the canonical registry. claude/hooks/ also ships sync-session-index.py, unwired: an optional Stop hook that repairs sessions-index.json when transcripts go missing from /resume; wire it yourself if you hit that.",
+  "_comment_hooks": "The Stop and SessionEnd hooks ship in claude/hooks/ and work standalone. If you set up the OPTIONAL canonical registry (run infra-templates/canonical/setup.py once), add its SessionStart hook here afterwards — the exact JSON snippet is in infra-templates/canonical/README.md. It is not wired by default so a fresh install is warning-free. claude/hooks/ also ships sync-session-index.py, unwired: an optional Stop hook that repairs sessions-index.json when transcripts go missing from /resume; wire it yourself if you hit that.",
   "hooks": {
     "Stop": [
       {
@@ -98,16 +98,6 @@
       }
     ],
     "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 ~/.claude/infra/canonical.py inject",
-            "timeout": 5,
-            "_comment": "OPTIONAL — requires infra-templates/canonical setup.py to have been run once. Delete this hook if you don't use the canonical registry."
-          }
-        ]
-      },
       {
         "hooks": [
           {

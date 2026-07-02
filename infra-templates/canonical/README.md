@@ -59,11 +59,27 @@ canonical inject
 
 ## Wiring into your own SessionStart hook
 
-Add a `SessionStart` hook in `settings.json` that runs
-`python3 ~/.claude/infra/canonical.py inject` — it prints a compact
-`additionalContext` JSON blob the harness injects at the top of every
-session, so you (and the agent) see which high-stakes facts exist and
-which are stale before doing any work.
+Not wired by default (so a fresh install is warning-free). After
+running `setup.py`, add this entry to the `SessionStart` array in
+`~/.claude/settings.json`:
+
+```json
+{
+  "hooks": [
+    {
+      "type": "command",
+      "command": "python3 ~/.claude/infra/canonical.py inject",
+      "timeout": 5
+    }
+  ]
+}
+```
+
+`canonical inject` prints a compact `additionalContext` JSON blob the
+harness injects at the top of every session, so you (and the agent)
+see which high-stakes facts exist and which are stale before doing
+any work. Re-run `verify-install.sh` after adding it — the doctor
+checks the hook resolves.
 
 <!-- CUSTOMISE: this ships as pure mechanism. Populate your own
      concepts with `canonical set` after install — never hardcode a
