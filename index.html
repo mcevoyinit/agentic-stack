@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>agentic-stack — a working Claude Code setup in one command</title>
+<meta name="description" content="66 skills, rules, hooks and memory infrastructure — a real daily-driven Claude Code stack, scrubbed and installable.">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    color: #22272e; margin: 0; line-height: 1.55; background: #fff;
+    font-size: 16px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 20px 60px; }
+  .hero {
+    background: linear-gradient(180deg, #f4f8fd 0%, #ffffff 100%);
+    border-bottom: 1px solid #e8edf2; padding: 56px 0 40px;
+  }
+  h1 { font-size: 42px; margin: 0 0 6px; letter-spacing: -1px; }
+  .sub { color: #55606c; font-size: 19px; margin: 0 0 22px; }
+  .btns a {
+    display: inline-block; text-decoration: none; font-weight: 600;
+    padding: 9px 18px; border-radius: 8px; margin: 0 8px 8px 0; font-size: 15px;
+  }
+  .b1 { background: #0b5cad; color: #fff; }
+  .b2 { background: #fff; color: #0b5cad; border: 1.5px solid #bcd7f2; }
+  h2 {
+    font-size: 24px; margin: 44px 0 10px; padding-bottom: 6px;
+    border-bottom: 2px solid #eef1f4; letter-spacing: -0.3px;
+  }
+  h3 { font-size: 17px; margin: 22px 0 8px; color: #333f4c; }
+  p { margin: 8px 0; }
+  .tw { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; margin: 4px 0 12px; }
+  td {
+    padding: 6px 12px 6px 0; vertical-align: top;
+    border-bottom: 1px solid #f0f2f4; font-size: 14.5px;
+  }
+  td.sk {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 13px;
+    color: #0b5cad; width: 190px; font-weight: 600; word-break: break-word;
+  }
+  pre {
+    background: #f6f8fa; border: 1px solid #e8ebee; border-radius: 10px;
+    padding: 14px 16px; font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 13px; line-height: 1.5; overflow-x: auto;
+  }
+  .chip {
+    display: inline-block; background: #eef3f8; border: 1px solid #d9e2ec;
+    border-radius: 14px; padding: 2px 12px; margin: 3px 4px 3px 0;
+    font-family: ui-monospace, Menlo, monospace; font-size: 13px; color: #34506b;
+  }
+  .tldr {
+    background: #f0f6fd; border: 1.5px solid #bcd7f2; border-radius: 12px;
+    padding: 16px 20px 18px; margin: 26px 0 6px; position: relative;
+  }
+  .tldr .label { font-weight: 700; font-size: 17px; color: #0b5cad; margin: 0 0 8px; padding-right: 70px; }
+  .tldr pre { background: #fff; border-color: #cfe0f0; white-space: pre-wrap; overflow-wrap: anywhere; margin: 10px 0 6px; }
+  .footer, p { overflow-wrap: anywhere; }
+  .copy {
+    position: absolute; top: 14px; right: 16px; font-size: 13px;
+    background: #0b5cad; color: #fff; border: none; border-radius: 6px;
+    padding: 5px 12px; cursor: pointer; font-weight: 600;
+  }
+  .copy:active { transform: scale(0.97); }
+  .callout {
+    background: #f4f9f4; border: 1px solid #d7e8d7; border-radius: 10px;
+    padding: 12px 18px; margin: 12px 0;
+  }
+  .muted { color: #6b7683; font-size: 14px; }
+  ul { margin: 8px 0 8px 20px; padding: 0; }
+  li { margin: 4px 0; }
+  .footer {
+    margin-top: 48px; color: #8a93a0; font-size: 13px;
+    border-top: 1px solid #e8ebee; padding-top: 14px;
+  }
+  .footer a { color: #0b5cad; }
+  @media (max-width: 600px) {
+    h1 { font-size: 32px; }
+    td.sk { width: 130px; }
+  }
+</style></head>
+<body>
+
+<div class="hero"><div class="wrap" style="padding-bottom:0">
+  <h1>agentic-stack</h1>
+  <p class="sub">A working Claude Code setup you can install in one command —
+  66 skills, rules, hooks and a memory layer, from a real daily-driven stack.</p>
+  <div class="btns">
+    <a class="b1" href="https://github.com/mcevoyinit/agentic-stack">GitHub</a>
+    <a class="b2" href="https://github.com/mcevoyinit/agentic-stack/releases/tag/v1.0.0">v1.0.0 release + PDF overview</a>
+  </div>
+
+  <div class="tldr">
+    <p class="label">Don't want to touch a terminal? Paste this into Claude Code:</p>
+    <button class="copy" onclick="navigator.clipboard.writeText(document.getElementById('paste').innerText).then(()=>{this.innerText='Copied!';setTimeout(()=>this.innerText='Copy',1500)})">Copy</button>
+    <pre id="paste">Clone https://github.com/mcevoyinit/agentic-stack, run its install.sh, then run verify-install.sh and fix anything the doctor flags. Then open docs/CUSTOMISE.md and walk me through the setup step by step, starting with the bits that need no accounts or keys.</pre>
+    <p class="muted">Claude clones it, installs it, health-checks it, then tours you
+    through the options. Nothing needs an account or a key on day one.</p>
+  </div>
+</div></div>
+
+<div class="wrap">
+
+<h2>Or by hand</h2>
+<pre>git clone https://github.com/mcevoyinit/agentic-stack
+cd agentic-stack
+./install.sh          # copies everything into ~/.claude, backs up anything it would touch
+./verify-install.sh   # doctor: tells you what's working and what's left to configure</pre>
+<p>Nothing gets auto-filled, no credentials are created, no databases are
+pre-populated. <b>docs/CUSTOMISE.md</b> is the guided tour of the few places you
+plug in your own details — you can ignore 90% of it on day one.</p>
+
+<h2>What's in the box</h2>
+<pre>agentic-stack/
+  install.sh              one-command installer (safe to re-run)
+  verify-install.sh       post-install doctor
+  claude/
+    CLAUDE.md.template      your global instructions, skeleton to edit
+    settings.json.template  permissions, hooks and MCP wiring, placeholders only
+    statusline.sh           context-usage status line
+    rules/                  5 instruction patterns
+    skills/                 66 skills (full menu below)
+    hooks/                  lifecycle automations
+    commands/               slash commands: design review, UI guidelines, demo VM
+  mcp/mcp-servers.example.json   every MCP server this stack talks to, by name
+  infra-templates/          canonical / recall-db / knowledge-base (empty schemas + setup)
+  docs/                     ARCHITECTURE, CUSTOMISE, SKILL-INDEX</pre>
+
+<h2>The skills — the full menu</h2>
+<p>Say the trigger word (or <code>/name</code>) in any Claude Code session and the
+skill takes over. Each one is a folder with a readable SKILL.md inside — nothing
+is a black box.</p>
+<h3>Thinking modes (apply to any task)</h3>
+<div class='tw'><table><tr><td class='sk'>brainstorm</td><td>Socratic spec refinement before any code is written</td></tr>
+<tr><td class='sk'>cartographer</td><td>Architecture/system-design "zoom out" mode</td></tr>
+<tr><td class='sk'>forensic</td><td>Scientific-method debugging — reproduce before fixing</td></tr>
+<tr><td class='sk'>triage</td><td>Incident-response, containment-first under time pressure</td></tr>
+<tr><td class='sk'>paranoid</td><td>Security-first: assume hostile input, check every boundary</td></tr>
+<tr><td class='sk'>profiler</td><td>Measurement-obsessed perf mode, refuses to guess</td></tr>
+<tr><td class='sk'>surgeon</td><td>Minimal-change mode — smallest diff that solves it</td></tr>
+<tr><td class='sk'>archaeologist</td><td>Safe modification of legacy code you don't fully understand</td></tr>
+<tr><td class='sk'>ironclad</td><td>Verification-driven — proves it works, never claims it</td></tr>
+<tr><td class='sk'>reviewer</td><td>Read-only code review, max 5 high-evidence findings</td></tr>
+<tr><td class='sk'>oracle</td><td>Routes your problem to the best-fit skill automatically</td></tr>
+<tr><td class='sk'>deeper</td><td>Push one level past the first-order answer</td></tr>
+<tr><td class='sk'>push</td><td>Push past premature completion — finish the untested path</td></tr>
+<tr><td class='sk'>red-team</td><td>CIA Tradecraft 4-pass decision stress-test, GO/KILL verdict</td></tr>
+</table></div>
+<h3>Research &amp; analysis</h3>
+<div class='tw'><table><tr><td class='sk'>feynman</td><td>Source-heavy deep research with adversarial verification</td></tr>
+<tr><td class='sk'>literature-review</td><td>Citation-graph academic literature survey</td></tr>
+<tr><td class='sk'>due-diligence</td><td>Investment due-diligence orchestrator</td></tr>
+<tr><td class='sk'>cap-table</td><td>Cap table reconstruction from public filings</td></tr>
+<tr><td class='sk'>market-size</td><td>TAM/SAM/SOM with the "Constrained Potential" framework</td></tr>
+<tr><td class='sk'>tokenomics</td><td>Token economics reconstruction for any crypto protocol</td></tr>
+<tr><td class='sk'>regulatory-landscape</td><td>Regulatory/licensing mapping across jurisdictions</td></tr>
+<tr><td class='sk'>competitive-analysis</td><td>Competitor analysis + AI council deliberation</td></tr>
+<tr><td class='sk'>vc-acquirer</td><td>Reverse-engineer how a company raised funding</td></tr>
+<tr><td class='sk'>prior-art</td><td>Patent/IP landscape research</td></tr>
+<tr><td class='sk'>narrative-tracker</td><td>Media coverage / public discourse tracking over time</td></tr>
+<tr><td class='sk'>person-research</td><td>Discrepancy engine for researching individuals (diligence prep)</td></tr>
+<tr><td class='sk'>software-estate</td><td>Document a company/protocol's full software architecture</td></tr>
+<tr><td class='sk'>domain</td><td>Domain-name availability checker (RDAP + DNS fallback)</td></tr>
+</table></div>
+<h3>Multi-model deliberation</h3>
+<div class='tw'><table><tr><td class='sk'>gemini / openai / grok</td><td>Single second-opinion call to one model</td></tr>
+<tr><td class='sk'>gemini-loop / openai-loop / grok-loop</td><td>Utility libs a model argues with itself through (used by looper)</td></tr>
+<tr><td class='sk'>looper</td><td>Runs all three self-deliberation loops in parallel</td></tr>
+<tr><td class='sk'>kamikaze</td><td>Recursive multi-AI strategic deliberation, adaptive depth</td></tr>
+<tr><td class='sk'>phoenix</td><td>Two-model "twin dragon" dialectic for the hardest questions</td></tr>
+<tr><td class='sk'>best-models</td><td>Audits which model IDs your setup calls are still valid</td></tr>
+</table></div>
+<h3>Writing &amp; docs</h3>
+<div class='tw'><table><tr><td class='sk'>academic-format</td><td>LaTeX-inspired academic formatting + PDF export</td></tr>
+<tr><td class='sk'>humanizer</td><td>Strips AI-writing tells from text</td></tr>
+<tr><td class='sk'>learn</td><td>Feynman-method active-recall learning loop</td></tr>
+<tr><td class='sk'>airplane</td><td>Offline-readable study PDF on any topic</td></tr>
+</table></div>
+<h3>Frontend / UI</h3>
+<div class='tw'><table><tr><td class='sk'>agent-browser-ui-testing</td><td>Methodology for browser-driving UI tests</td></tr>
+<tr><td class='sk'>frontend-mix-* (8 stages)</td><td>Mixed-provider full-stack build pipeline, one stage per skill — see frontend-mix-example for a worked run</td></tr>
+</table></div>
+<h3>Operational / meta</h3>
+<div class='tw'><table><tr><td class='sk'>morning-brief</td><td>Flagship daily briefing — see its own INTEGRATION.md</td></tr>
+<tr><td class='sk'>backup</td><td>Generic Claude Code setup backup/restore template</td></tr>
+<tr><td class='sk'>session-survey</td><td>Survey + recover recent Claude Code sessions</td></tr>
+<tr><td class='sk'>restore</td><td>Bulk-reopen recent sessions into terminal tabs</td></tr>
+<tr><td class='sk'>recall</td><td>Search past conversations (needs infra-templates/recall-db)</td></tr>
+<tr><td class='sk'>kb</td><td>Query the structured knowledge base (needs infra-templates/knowledge-base)</td></tr>
+<tr><td class='sk'>codex-review</td><td>Cross-provider review via OpenAI Codex CLI</td></tr>
+<tr><td class='sk'>mac-health</td><td>macOS memory-pressure / zombie-process triage</td></tr>
+<tr><td class='sk'>autoresearch-loop</td><td>Autonomous investigate-and-fix loop over a task list</td></tr>
+<tr><td class='sk'>archon</td><td>Run/author Archon CLI workflows in isolated git worktrees</td></tr>
+</table></div>
+<h3>Travel / personal-productivity utilities (generic)</h3>
+<div class='tw'><table><tr><td class='sk'>cheap-flights</td><td>Flight search across nearby airports, split tickets, hidden city</td></tr>
+<tr><td class='sk'>x-intel</td><td>Read-only X/Twitter intelligence briefs</td></tr>
+<tr><td class='sk'>x-bookmark-export-cdp</td><td>Export your X bookmarks via Chrome DevTools Protocol</td></tr>
+<tr><td class='sk'>x-bookmarks-iterate</td><td>Open one Claude Code tab per recent bookmark</td></tr>
+</table></div>
+
+
+<h2>The rules</h2>
+<p>Small always-on instruction files. Each fixes one recurring annoyance:</p>
+<div class="tw"><table><tr><td class='sk'>drafts</td><td>files written for humans are plain .txt, so pasting into email or chat never brings markdown junk along</td></tr>
+<tr><td class='sk'>fable-5</td><td>how to get the best out of the model: effort levels, delegation, verification habits</td></tr>
+<tr><td class='sk'>kb-triggers</td><td>check the knowledge base before answering from memory</td></tr>
+<tr><td class='sk'>output-format</td><td>narrow tables and short lines so terminal output is actually readable</td></tr>
+<tr><td class='sk'>reminders</td><td>one todo file, one protocol, so “remind me to X” just works</td></tr></table></div>
+
+<h2>The hooks</h2>
+<p>Scripts that fire automatically on session events — this is where the setup
+starts to feel like it has a memory:</p>
+<div class="tw"><table><tr><td class='sk'>check-links.py</td><td>before Claude finishes a reply, every link it gave you gets checked; dead or wrong-content links get flagged</td></tr>
+<tr><td class='sk'>session-end-autocapture.sh</td><td>when a session ends, action items get pulled out into your todo file automatically</td></tr>
+<tr><td class='sk'>session_end_autocapture.py</td><td>the Python worker behind the hook above</td></tr>
+<tr><td class='sk'>sync-session-index.py</td><td>repairs the session index when transcripts go missing from /resume (optional, unwired by default)</td></tr></table></div>
+
+<h2>The three little databases</h2>
+<p>All optional, all empty, all plain SQLite — run each folder's <code>setup.py</code>
+when you want it:</p>
+<div class="tw"><table><tr><td class='sk'>canonical</td><td>a tiny “source of truth” registry. Numbers that change (a deadline, a price, a figure) get a pointer to the file that holds the truth, never hardcoded into a prompt where they silently go stale.</td></tr>
+<tr><td class='sk'>recall-db</td><td>an empty SQLite schema for indexing your own past Claude conversations, so “what did we decide about X last month?” becomes answerable.</td></tr>
+<tr><td class='sk'>knowledge-base</td><td>an empty schema for topic dossiers (people, companies, projects) that skills like /kb query.</td></tr></table></div>
+
+<h2>MCP servers it knows about</h2>
+<p>Named with placeholder credentials only — you bring your own accounts, or use
+community servers:</p>
+<p><span class='chip'>codex</span> <span class='chip'>conversation-search</span> <span class='chip'>github</span> <span class='chip'>gws</span> <span class='chip'>hermes</span> <span class='chip'>knowledge-base</span> <span class='chip'>nimble</span> <span class='chip'>slack</span> <span class='chip'>whatsapp</span> <span class='chip'>x</span></p>
+
+<h2>The flagship: morning-brief</h2>
+<p>A daily briefing that reads your calendar, inbox and chat, works out who you
+actually owe a reply to, checks your todo list against ground truth (so it stops
+nagging you about things you already did), and renders it all as one glanceable
+card. <b>claude/skills/morning-brief/INTEGRATION.md</b> is the staged setup guide —
+an email + calendar connection alone gets you 80% of the value.</p>
+
+<h2>Is it clean?</h2>
+<div class="callout">
+<ul>
+<li><b>Privacy:</b> every file passed an aggressive keyword gate plus manual sweeps
+for names, emails, phone numbers, wallet addresses and account details. Personal
+skills, memory, transcripts and credentials were excluded wholesale, never copied.</li>
+<li><b>Security:</b> every script was independently audited twice; real issues found
+were fixed and each fix proven with a crafted hostile input before shipping.</li>
+<li><b>It actually installs:</b> tested end to end in throwaway environments,
+re-run for idempotency, and health-checked by the bundled doctor — a fresh
+install shows zero warnings.</li>
+</ul>
+</div>
+
+<div class="footer">
+  <a href="https://github.com/mcevoyinit/agentic-stack">github.com/mcevoyinit/agentic-stack</a> · MIT ·
+  66 skills, 5 rules, 4 hooks, 3 infra templates ·
+  read <a href="https://github.com/mcevoyinit/agentic-stack/blob/main/docs/ARCHITECTURE.md">ARCHITECTURE.md</a> for how the pieces compose
+</div>
+
+</div>
+</body></html>
