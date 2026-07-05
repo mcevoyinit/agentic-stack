@@ -1,4 +1,4 @@
-# agentic-stack-starter
+# agentic-stack
 
 A privacy-sanitised, installable export of a real, daily-driven Claude
 Code agentic stack: 66 skills, a rules pattern, a hooks framework, an
@@ -45,10 +45,18 @@ agentic-stack-starter/
 ## Quick start
 
 ```bash
-cd agentic-stack-starter
+git clone https://github.com/mcevoyinit/agentic-stack
+cd agentic-stack
 ./install.sh
 ./verify-install.sh   # doctor: checks the install, reports what's missing
 ```
+
+Or the no-terminal route — paste this into Claude Code:
+
+> Clone https://github.com/mcevoyinit/agentic-stack, run its
+> install.sh, then verify-install.sh, then open docs/CUSTOMISE.md
+> and walk me through the setup step by step, starting with the
+> bits that need no accounts or keys.
 
 `install.sh` copies `claude/` into `~/.claude/` (backing up anything
 that would be overwritten), renders the two `.template` files by
