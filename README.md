@@ -1,5 +1,7 @@
 # agentic-stack
 
+**Site:** https://mcevoyinit.github.io/agentic-stack/
+
 A privacy-sanitised, installable export of a real, daily-driven Claude
 Code agentic stack: 66 skills, a rules pattern, a hooks framework, an
 MCP server reference list, and three runnable empty-schema infra
