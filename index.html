@@ -102,25 +102,24 @@
 
 <div class="wrap">
 
-<h2>What this is</h2>
-<p>This is the actual Claude Code stack I drive every day, made installable.
-The idea is to turn Claude Code from a chat box into an <b>operating system for
-agents</b>:</p>
+<h2>The short version</h2>
+<p>Most "prompt packs" are a folder of clever prompts. This is not that. It's a
+<b>unified agentic system</b> — four layers that compose into one self-maintaining
+loop, not a menu you pick from.</p>
 <ul>
-<li><b>Skills</b> — 66 reusable capabilities the agent picks up on a
-trigger word: research, planning, review, writing, multi-model deliberation.</li>
-<li><b>Rules</b> — an always-on layer that shapes how the agents behave.</li>
-<li><b>Hooks</b> — scripts that fire on session events, so useful things happen
-without being asked.</li>
-<li><b>MCP servers</b> — the bridges that let agents reach real tools: email,
-calendar, chat, files.</li>
-<li><b>A shared memory layer</b> — so every agent works from the same up-to-date
-picture instead of starting cold each session.</li>
+<li><b>Skills</b> — 66 task modes the agent invokes on its own. The
+<i>what it can do</i>.</li>
+<li><b>Rules</b> — always-on instructions shaping <i>how</i> it behaves every turn.
+Not invoked, always live.</li>
+<li><b>Hooks</b> — lifecycle automation that fires without being asked: injects
+context at session start, captures learnings at session end. The nervous system.</li>
+<li><b>Memory + context</b> — persistent state across sessions, so it never
+re-learns what it knew and never quotes a stale fact.</li>
 </ul>
-<p>None of the pieces are exotic. The leverage is in composition — a rule defines
-a todo protocol, a hook auto-captures action items into it at session end, a
-skill reads it back the next morning. Three simple pieces compose into something
-that feels like memory.</p>
+<p>The point isn't any single skill. It's that <b>quality is enforced by the
+system, not remembered by the human</b> — the loop closes itself, so the agent
+gets sharper every session instead of starting cold. Everything below is
+<i>what's underneath</i>.</p>
 
 <h2>Or by hand</h2>
 <pre>git clone https://github.com/mcevoyinit/agentic-stack
