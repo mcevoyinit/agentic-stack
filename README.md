@@ -2,6 +2,39 @@
 
 **Site:** https://mcevoyinit.github.io/agentic-stack/
 
+## The short version
+
+Most "prompt packs" are a folder of clever prompts. This is not that.
+It is a **unified agentic system**: four layers that compose into one
+self-maintaining loop, not a menu you pick from.
+
+- **Skills**: 66 task modes the agent invokes on its own. Research,
+  code review, planning, writing, multi-model deliberation across
+  GPT, Gemini and Grok. The *what it can do*.
+- **Rules**: always-on operating instructions that shape *how* it
+  behaves on every single turn. Output format, verification
+  discipline, tone, guardrails. Not invoked, always live.
+- **Hooks**: lifecycle automation that fires without being asked.
+  Injects the right context at session start, captures what was
+  learned at session end, checks links, syncs indexes. The nervous
+  system.
+- **Memory + context**: persistent state across sessions. A
+  source-of-truth registry, a conversation-recall index, a structured
+  knowledge base. So it never re-learns what it already knew, and
+  never quotes a stale fact.
+
+The point is not any single skill. It is that **quality is enforced by
+the system, not remembered by the human**. Context arrives
+automatically. Insights are captured automatically. High-stakes facts
+are derived live from a canonical source instead of hardcoded, so they
+cannot silently go stale. The loop closes itself, so the agent gets
+sharper every session instead of starting cold.
+
+This is a **real, daily-driven stack**, sanitised and packaged so you
+can install the whole thing in one command and run the same loop.
+
+## What's underneath
+
 A privacy-sanitised, installable export of a real, daily-driven Claude
 Code agentic stack: 66 skills, a rules pattern, a hooks framework, an
 MCP server reference list, and three runnable empty-schema infra
@@ -93,3 +126,4 @@ pipeline for `knowledge-base`, and every skill that was inherently
 about one person's specific life (finance tracking, health, a named
 business deal, a named relationship). The `SANITISATION-REPORT.md`
 kept with the bundle's source lists every exclusion and why.
+
