@@ -102,6 +102,26 @@
 
 <div class="wrap">
 
+<h2>What this is</h2>
+<p>This is the actual Claude Code stack I drive every day, made installable.
+The idea is to turn Claude Code from a chat box into an <b>operating system for
+agents</b>:</p>
+<ul>
+<li><b>Skills</b> — 66 reusable capabilities the agent picks up on a
+trigger word: research, planning, review, writing, multi-model deliberation.</li>
+<li><b>Rules</b> — an always-on layer that shapes how the agents behave.</li>
+<li><b>Hooks</b> — scripts that fire on session events, so useful things happen
+without being asked.</li>
+<li><b>MCP servers</b> — the bridges that let agents reach real tools: email,
+calendar, chat, files.</li>
+<li><b>A shared memory layer</b> — so every agent works from the same up-to-date
+picture instead of starting cold each session.</li>
+</ul>
+<p>None of the pieces are exotic. The leverage is in composition — a rule defines
+a todo protocol, a hook auto-captures action items into it at session end, a
+skill reads it back the next morning. Three simple pieces compose into something
+that feels like memory.</p>
+
 <h2>Or by hand</h2>
 <pre>git clone https://github.com/mcevoyinit/agentic-stack
 cd agentic-stack
